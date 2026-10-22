@@ -1,1 +1,1 @@
-# Thesis-Boid-Animation-Rule-System
+# Boid Animation Rule System
