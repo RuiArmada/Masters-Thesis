@@ -18,6 +18,7 @@ Masters-Thesis/
 │   ├── Schedules/                   XML schedules for each scenario
 │   │   └── Validation/              XML schedules for the validation maps
 │   └── Documentation/               Technical guide (Markdown chapters and the compiled PDF)
+├── media/screenshots/               Screenshots used in this README
 ├── LICENSE
 └── README.md
 ```
@@ -31,6 +32,44 @@ Masters-Thesis/
 | Infrastructure planning (Mall A and Mall B) | `/Game/UseCases/UrbanPlanning/MallA` and `MallB` | `Schedules/InfrastructurePlanningSchedule_MallA.xml` and `_MallB.xml` |
 | Mall entrance demo | `/Game/UseCases/UrbanPlanning/EntranceDemo` | `Schedules/InfrastructurePlanningSchedule_MallEntranceInteract.xml` |
 | Validation (V01 to V07) | `/Game/UseCases/Validation/V0*` | `Schedules/Validation/*.xml` |
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="media/screenshots/daily-urban-life.jpg" alt="Daily Urban Life scenario"><br>Daily Urban Life</td>
+    <td width="50%"><img src="media/screenshots/evacuation.jpg" alt="Evacuation scenario"><br>Emergency evacuation</td>
+  </tr>
+  <tr>
+    <td><img src="media/screenshots/mall-a-entrance.jpg" alt="Mall A entrance"><br>Mall A entrance</td>
+    <td><img src="media/screenshots/mall-a-food-court.jpg" alt="Mall A food court"><br>Mall A food court</td>
+  </tr>
+  <tr>
+    <td><img src="media/screenshots/mall-a-multi-level.jpg" alt="Mall A multi-level layout"><br>Mall A multi-level layout</td>
+    <td><img src="media/screenshots/mall-b-interior.jpg" alt="Mall B interior"><br>Mall B interior</td>
+  </tr>
+  <tr>
+    <td><img src="media/screenshots/mall-b-entrances.jpg" alt="Mall B entrances"><br>Mall B entrances</td>
+    <td><img src="media/screenshots/mall-b-entrance-interact.jpg" alt="Agents moving to open a Mall B entrance"><br>Agents moving to open an entrance (interact action)</td>
+  </tr>
+</table>
+
+## Videos
+
+Screen recordings of each scenario are attached to the [Demo videos release](https://github.com/RuiArmada/Masters-Thesis/releases/tag/videos).
+
+| Scenario | Video |
+|----------|-------|
+| Daily urban life | [daily-urban-life.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/daily-urban-life.mp4) |
+| Emergency evacuation | [evacuation.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/evacuation.mp4) |
+| Infrastructure planning, Mall A | [mall-a.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/mall-a.mp4) |
+| Infrastructure planning, Mall B | [mall-b.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/mall-b.mp4) |
+| Validation, unidirectional | [validation-unidirectional.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/validation-unidirectional.mp4) |
+| Validation, bidirectional | [validation-bidirectional.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/validation-bidirectional.mp4) |
+| Validation, corner | [validation-corner.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/validation-corner.mp4) |
+| Validation, bottleneck | [validation-bottleneck.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/validation-bottleneck.mp4) |
+| Validation, T-junction | [validation-t-junction.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/validation-t-junction.mp4) |
+| Validation, functional area | [validation-functional-area.mp4](https://github.com/RuiArmada/Masters-Thesis/releases/download/videos/validation-functional-area.mp4) |
 
 ## Third-party content (not included)
 
