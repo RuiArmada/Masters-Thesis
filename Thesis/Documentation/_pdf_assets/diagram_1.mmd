@@ -1,0 +1,23 @@
+flowchart TB
+  subgraph Config
+    XML["SimulationConfig.xml"]
+    Sched["Schedules/*.xml"]
+  end
+
+  Registry["USimulationFeatureRegistry"]
+  Analytics["USimulationAnalytics"]
+  ScheduleMgr["AScheduleManager"]
+  Flock["AFlockController"]
+  Agents["ABoidsAB agents"]
+  Stations["AAgentStation / AAgentArea"]
+  Nav["NavMesh + Sidewalk filter"]
+
+  XML --> Registry
+  Sched --> ScheduleMgr
+  Registry --> ScheduleMgr
+  Registry --> Analytics
+  ScheduleMgr --> Agents
+  Flock --> Agents
+  Agents --> Nav
+  Agents --> Stations
+  Agents --> Analytics

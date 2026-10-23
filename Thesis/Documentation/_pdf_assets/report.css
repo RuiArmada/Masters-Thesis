@@ -1,0 +1,190 @@
+
+@page {
+  size: A4;
+  margin: 20mm 18mm 18mm 18mm;
+}
+
+html {
+  font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.45;
+  color: #1a1a1a;
+}
+
+body {
+  max-width: none;
+}
+
+header#title-block-header {
+  page-break-after: always;
+  padding-top: 55mm;
+  text-align: center;
+  min-height: 200mm;
+}
+
+header#title-block-header h1.title {
+  font-size: 26pt;
+  font-weight: 600;
+  margin: 0 0 14pt 0;
+  color: #111;
+  border: none;
+}
+
+header#title-block-header p.subtitle {
+  font-size: 14pt;
+  color: #333;
+  margin: 0 0 40pt 0;
+}
+
+header#title-block-header p.author,
+header#title-block-header p.date {
+  font-size: 11pt;
+  color: #444;
+  margin: 4pt 0;
+}
+
+.title-meta {
+  margin-top: 40pt;
+  font-size: 10.5pt;
+  color: #333;
+  line-height: 1.6;
+}
+
+nav#TOC {
+  page-break-after: always;
+}
+
+nav#TOC > h2 {
+  font-size: 16pt;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 6pt;
+  page-break-before: avoid;
+}
+
+nav#TOC ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+nav#TOC > ul > li {
+  margin: 6pt 0;
+  font-weight: 600;
+}
+
+nav#TOC ul ul {
+  padding-left: 14pt;
+  font-weight: 400;
+}
+
+nav#TOC a {
+  color: #111;
+  text-decoration: none;
+}
+
+h1 {
+  font-size: 16pt;
+  font-weight: 600;
+  margin-top: 18pt;
+  margin-bottom: 10pt;
+  page-break-before: always;
+  border-bottom: 1px solid #bbb;
+  padding-bottom: 4pt;
+}
+
+nav#TOC + h1,
+body > h1:first-of-type {
+  page-break-before: avoid;
+}
+
+h2 {
+  font-size: 13pt;
+  font-weight: 600;
+  margin-top: 16pt;
+  margin-bottom: 6pt;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 11.5pt;
+  font-weight: 600;
+  margin-top: 12pt;
+  margin-bottom: 4pt;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-size: 10.5pt;
+  font-weight: 600;
+  margin-top: 10pt;
+}
+
+p, li {
+  orphans: 3;
+  widows: 3;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10pt 0 14pt 0;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 4pt 6pt;
+  vertical-align: top;
+  text-align: left;
+}
+
+th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 9pt;
+  background: #f5f5f5;
+  padding: 0 2pt;
+}
+
+pre {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 8pt 10pt;
+  font-size: 8.5pt;
+  line-height: 1.35;
+  overflow-x: auto;
+  page-break-inside: avoid;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+blockquote {
+  margin: 10pt 0;
+  padding: 6pt 12pt;
+  border-left: 3px solid #999;
+  color: #333;
+  background: #fafafa;
+}
+
+img {
+  max-width: 95%;
+  height: auto;
+  display: block;
+  margin: 12pt auto;
+  page-break-inside: avoid;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 16pt 0;
+}

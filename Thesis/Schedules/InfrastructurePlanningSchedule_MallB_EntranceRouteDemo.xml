@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Mall B — OPTIONAL thin Entrance2 route demo (Agent_0..5 only).
+
+  NOT used by AutoSelectFromMap. To run this demo, set in SimulationConfig:
+    <infrastructurePlanning><scheduleFile value="Schedules/InfrastructurePlanningSchedule_MallB_EntranceRouteDemo.xml"/>
+  Canonical Mall B shopping (Agent_0..9) is InfrastructurePlanningSchedule_MallB.xml.
+-->
+<schedule>
+
+    <!-- Already inside / near Entrance1 — early traffic using the original route -->
+    <agent id="Agent_2">
+        <rule time="08:00"><then action="Idle" duration="2" /></rule>
+        <rule time="08:01"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:08"><then action="UseStation" area="ShopA" stationType="ShopA_Desk" duration="8" /></rule>
+        <rule time="08:20"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:35"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <!-- At Entrance2 outside — journey BEFORE gate opens (closed corridor must not be used) -->
+    <agent id="Agent_1">
+        <rule time="08:00"><then action="Idle" duration="2" /></rule>
+        <rule time="08:01"><then action="MoveTo" area="ShopB" /></rule>
+        <rule time="08:12"><then action="UseStation" area="ShopB" stationType="ShopB_Desk" duration="8" /></rule>
+        <rule time="08:25"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <!-- Operator: open Entrance2 -->
+    <agent id="Agent_0">
+        <rule time="08:05"><then action="MoveTo" area="EntranceButton2" /></rule>
+        <rule time="08:10"><then action="Interact" target="EntranceButton2"/></rule>
+        <rule time="08:12"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:20"><then action="UseStation" area="ShopA" stationType="ShopA_Desk" duration="8" /></rule>
+        <rule time="08:32"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <!-- At Entrance2 — NEW journey AFTER open; A* may include Entrance2 corridor -->
+    <agent id="Agent_3">
+        <rule time="08:00"><then action="Idle" duration="10" /></rule>
+        <rule time="08:14"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:22"><then action="UseStation" area="ShopA" stationType="ShopA_Desk" duration="8" /></rule>
+        <rule time="08:34"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:48"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <!-- Extra Entrance1 traffic before/around open (observable E1 load) -->
+    <agent id="Agent_4">
+        <rule time="08:00"><then action="Idle" duration="3" /></rule>
+        <rule time="08:02"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:15">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="8"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="10"/>
+            </then>
+        </rule>
+        <rule time="08:40"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_5">
+        <rule time="08:00"><then action="Idle" duration="12" /></rule>
+        <rule time="08:16"><then action="MoveTo" area="ShopB" /></rule>
+        <rule time="08:28"><then action="MoveTo" area="FoodCourt2" /></rule>
+        <rule time="08:45"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+</schedule>

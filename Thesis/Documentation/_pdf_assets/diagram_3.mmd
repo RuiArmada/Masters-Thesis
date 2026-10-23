@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant EM as EmergencyManager
+  participant IM as IncidentManager
+  participant A as Agents
+  participant X as ExitPoints
+  participant An as Analytics
+
+  EM->>IM: Start incident / evacuation phase
+  IM->>A: Broadcast evacuate
+  A->>A: Reaction delay, StartFlee
+  A->>X: Path via CrowdRoutingService scores
+  X->>A: Queue / process capacity
+  A->>An: Evacuation metrics
+  EM->>EM: Timer / AllClear

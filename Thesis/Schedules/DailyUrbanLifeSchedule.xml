@@ -1,0 +1,718 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- TIME-OF-DAY: HH:MM is simulation clock time (minutes from midnight). startHour/startMinute in SimulationConfig set the clock start (default 08:00). -->
+<!-- Use Case 2: Daily Urban Life â€” Home â†’ Commute â†’ Work â†’ Break â†’ Work â†’ Home -->
+<!-- Timing: 1 sim minute = 1 real second. AM/PM work duration = 15s. Break after AM block. Home before hunger wave. -->
+<!-- Work areas: 4 desks each â€” Work0=A0-A3, Work1=A4-A7, Work2=A8-A11, Work3=A12-A15, Work4=A16-A19, Work5=A20-A23, Work6=A24 -->
+<!-- Agents 0-24: primary desk owners. Agents 25-49: reuse A0-A24 / Home1-Home25 (queue when busy). -->
+
+<schedule>
+
+    <agent id="Agent_0">
+        <rule time="08:05"><then action="UseStation" area="Sleep" stationType="Bed1" duration="20" /></rule>
+
+        <rule time="08:22"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:40"><then action="UseStation" area="Work0" stationType="A0" duration="15" /></rule>
+
+        <rule time="09:00"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:13"><then action="UseStation" area="Work0" stationType="A0" duration="15" /></rule>
+
+        <rule time="09:43"><then action="MoveTo" area="Home1" /></rule>
+
+        <rule time="09:55"><then action="UseStation" area="Sleep" stationType="Bed1" duration="20" /></rule>
+    </agent>
+
+    <agent id="Agent_1">
+        <rule time="08:07"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:24"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:42"><then action="UseStation" area="Work0" stationType="A1" duration="15" /></rule>
+
+        <rule time="09:02"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:15"><then action="UseStation" area="Work0" stationType="A1" duration="15" /></rule>
+
+        <rule time="09:45"><then action="MoveTo" area="Home2" /></rule>
+
+        <rule time="09:57"><then action="UseStation" area="Sleep" stationType="Bed1" duration="20" /></rule>
+    </agent>
+
+    <agent id="Agent_2">
+        <rule time="08:06"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:23"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:41"><then action="UseStation" area="Work0" stationType="A2" duration="15" /></rule>
+
+        <rule time="09:01"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:14"><then action="UseStation" area="Work0" stationType="A2" duration="15" /></rule>
+
+        <rule time="09:44"><then action="MoveTo" area="Home3" /></rule>
+    </agent>
+
+    <agent id="Agent_3">
+        <rule time="08:08"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:25"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:43"><then action="UseStation" area="Work0" stationType="A3" duration="15" /></rule>
+
+        <rule time="09:03"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:16"><then action="UseStation" area="Work0" stationType="A3" duration="15" /></rule>
+
+        <rule time="09:46"><then action="MoveTo" area="Home4" /></rule>
+    </agent>
+
+    <agent id="Agent_4">
+        <rule time="08:05"><then action="Idle" duration="18" /></rule>
+
+        <rule time="08:26"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="08:44"><then action="UseStation" area="Work1" stationType="A4" duration="15" /></rule>
+
+        <rule time="09:04"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:17"><then action="UseStation" area="Work1" stationType="A4" duration="15" /></rule>
+
+        <rule time="09:47"><then action="MoveTo" area="Home5" /></rule>
+    </agent>
+
+    <agent id="Agent_5">
+        <rule time="08:09"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:27"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="08:45"><then action="UseStation" area="Work1" stationType="A5" duration="15" /></rule>
+
+        <rule time="09:05"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:18"><then action="UseStation" area="Work1" stationType="A5" duration="15" /></rule>
+
+        <rule time="09:48"><then action="MoveTo" area="Home6" /></rule>
+    </agent>
+
+    <agent id="Agent_6">
+        <rule time="08:06"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:28"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="08:46"><then action="UseStation" area="Work1" stationType="A6" duration="15" /></rule>
+
+        <rule time="09:06"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:19"><then action="UseStation" area="Work1" stationType="A6" duration="15" /></rule>
+
+        <rule time="09:49"><then action="MoveTo" area="Home7" /></rule>
+    </agent>
+
+    <agent id="Agent_7">
+        <rule time="08:10"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:29"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="08:47"><then action="UseStation" area="Work1" stationType="A7" duration="15" /></rule>
+
+        <rule time="09:07"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:20"><then action="UseStation" area="Work1" stationType="A7" duration="15" /></rule>
+
+        <rule time="09:50"><then action="MoveTo" area="Home8" /></rule>
+    </agent>
+
+    <agent id="Agent_8">
+        <rule time="08:07"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:30"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="08:48"><then action="UseStation" area="Work2" stationType="A8" duration="15" /></rule>
+
+        <rule time="09:08"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:21"><then action="UseStation" area="Work2" stationType="A8" duration="15" /></rule>
+
+        <rule time="09:51"><then action="MoveTo" area="Home9" /></rule>
+    </agent>
+
+    <agent id="Agent_9">
+        <rule time="08:11"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:31"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="08:49"><then action="UseStation" area="Work2" stationType="A9" duration="15" /></rule>
+
+        <rule time="09:09"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:22"><then action="UseStation" area="Work2" stationType="A9" duration="15" /></rule>
+
+        <rule time="09:52"><then action="MoveTo" area="Home10" /></rule>
+    </agent>
+
+    <agent id="Agent_10">
+        <rule time="08:05"><then action="Idle" duration="20" /></rule>
+
+        <rule time="08:32"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="08:50"><then action="UseStation" area="Work2" stationType="A10" duration="15" /></rule>
+
+        <rule time="09:10"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:23"><then action="UseStation" area="Work2" stationType="A10" duration="15" /></rule>
+
+        <rule time="09:53"><then action="MoveTo" area="Home11" /></rule>
+    </agent>
+
+    <agent id="Agent_11">
+        <rule time="08:12"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:33"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="08:51"><then action="UseStation" area="Work2" stationType="A11" duration="15" /></rule>
+
+        <rule time="09:11"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:24"><then action="UseStation" area="Work2" stationType="A11" duration="15" /></rule>
+
+        <rule time="09:54"><then action="MoveTo" area="Home12" /></rule>
+    </agent>
+
+    <agent id="Agent_12">
+        <rule time="08:08"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:34"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="08:52"><then action="UseStation" area="Work3" stationType="A12" duration="15" /></rule>
+
+        <rule time="09:12"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:25"><then action="UseStation" area="Work3" stationType="A12" duration="15" /></rule>
+
+        <rule time="09:55"><then action="MoveTo" area="Home13" /></rule>
+    </agent>
+
+    <agent id="Agent_13">
+        <rule time="08:13"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:35"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="08:53"><then action="UseStation" area="Work3" stationType="A13" duration="15" /></rule>
+
+        <rule time="09:13"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:26"><then action="UseStation" area="Work3" stationType="A13" duration="15" /></rule>
+
+        <rule time="09:56"><then action="MoveTo" area="Home14" /></rule>
+    </agent>
+
+    <agent id="Agent_14">
+        <rule time="08:06"><then action="Idle" duration="18" /></rule>
+
+        <rule time="08:36"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="08:54"><then action="UseStation" area="Work3" stationType="A14" duration="15" /></rule>
+
+        <rule time="09:14"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:27"><then action="UseStation" area="Work3" stationType="A14" duration="15" /></rule>
+
+        <rule time="09:57"><then action="MoveTo" area="Home15" /></rule>
+    </agent>
+
+    <agent id="Agent_15">
+        <rule time="08:09"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:37"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="08:55"><then action="UseStation" area="Work3" stationType="A15" duration="15" /></rule>
+
+        <rule time="09:15"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:28"><then action="UseStation" area="Work3" stationType="A15" duration="15" /></rule>
+
+        <rule time="09:58"><then action="MoveTo" area="Home16" /></rule>
+    </agent>
+
+    <agent id="Agent_16">
+        <rule time="08:14"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:38"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="08:56"><then action="UseStation" area="Work4" stationType="A16" duration="15" /></rule>
+
+        <rule time="09:16"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:29"><then action="UseStation" area="Work4" stationType="A16" duration="15" /></rule>
+
+        <rule time="09:59"><then action="MoveTo" area="Home17" /></rule>
+    </agent>
+
+    <agent id="Agent_17">
+        <rule time="08:05"><then action="Idle" duration="19" /></rule>
+
+        <rule time="08:39"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="08:57"><then action="UseStation" area="Work4" stationType="A17" duration="15" /></rule>
+
+        <rule time="09:17"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:30"><then action="UseStation" area="Work4" stationType="A17" duration="15" /></rule>
+
+        <rule time="10:00"><then action="MoveTo" area="Home18" /></rule>
+    </agent>
+
+    <agent id="Agent_18">
+        <rule time="08:10"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:40"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="08:58"><then action="UseStation" area="Work4" stationType="A18" duration="15" /></rule>
+
+        <rule time="09:18"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:31"><then action="UseStation" area="Work4" stationType="A18" duration="15" /></rule>
+
+        <rule time="10:01"><then action="MoveTo" area="Home19" /></rule>
+    </agent>
+
+    <agent id="Agent_19">
+        <rule time="08:07"><then action="Idle" duration="18" /></rule>
+
+        <rule time="08:41"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="08:59"><then action="UseStation" area="Work4" stationType="A19" duration="15" /></rule>
+
+        <rule time="09:19"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:32"><then action="UseStation" area="Work4" stationType="A19" duration="15" /></rule>
+
+        <rule time="10:02"><then action="MoveTo" area="Home20" /></rule>
+    </agent>
+
+    <agent id="Agent_20">
+        <rule time="08:11"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:42"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:00"><then action="UseStation" area="Work5" stationType="A20" duration="15" /></rule>
+
+        <rule time="09:20"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:33"><then action="UseStation" area="Work5" stationType="A20" duration="15" /></rule>
+
+        <rule time="10:03"><then action="MoveTo" area="Home21" /></rule>
+    </agent>
+
+    <agent id="Agent_21">
+        <rule time="08:08"><then action="Idle" duration="19" /></rule>
+
+        <rule time="08:43"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:01"><then action="UseStation" area="Work5" stationType="A21" duration="15" /></rule>
+
+        <rule time="09:21"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:34"><then action="UseStation" area="Work5" stationType="A21" duration="15" /></rule>
+
+        <rule time="10:04"><then action="MoveTo" area="Home22" /></rule>
+    </agent>
+
+    <agent id="Agent_22">
+        <rule time="08:12"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:44"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:02"><then action="UseStation" area="Work5" stationType="A22" duration="15" /></rule>
+
+        <rule time="09:22"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:35"><then action="UseStation" area="Work5" stationType="A22" duration="15" /></rule>
+
+        <rule time="10:05"><then action="MoveTo" area="Home23" /></rule>
+    </agent>
+
+    <agent id="Agent_23">
+        <rule time="08:06"><then action="Idle" duration="20" /></rule>
+
+        <rule time="08:45"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:03"><then action="UseStation" area="Work5" stationType="A23" duration="15" /></rule>
+
+        <rule time="09:23"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:36"><then action="UseStation" area="Work5" stationType="A23" duration="15" /></rule>
+
+        <rule time="10:06"><then action="MoveTo" area="Home24" /></rule>
+    </agent>
+
+    <agent id="Agent_24">
+        <rule time="08:06"><then action="UseStation" area="Sleep" stationType="Bed2" duration="20" /></rule>
+
+        <rule time="08:46"><then action="MoveTo" area="Work6" /></rule>
+
+        <rule time="09:04"><then action="UseStation" area="Work6" stationType="A24" duration="15" /></rule>
+
+        <rule time="09:24"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:37"><then action="UseStation" area="Work6" stationType="A24" duration="15" /></rule>
+
+        <rule time="10:07"><then action="MoveTo" area="Home25" /></rule>
+
+        <rule time="10:19"><then action="UseStation" area="Sleep" stationType="Bed2" duration="20" /></rule>
+    </agent>
+
+    <agent id="Agent_25">
+        <rule time="08:13"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:37"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:55"><then action="UseStation" area="Work0" stationType="A0" duration="15" /></rule>
+
+        <rule time="09:15"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:28"><then action="UseStation" area="Work0" stationType="A0" duration="15" /></rule>
+
+        <rule time="09:58"><then action="MoveTo" area="Home1" /></rule>
+    </agent>
+
+    <agent id="Agent_26">
+        <rule time="08:14"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:38"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:56"><then action="UseStation" area="Work0" stationType="A1" duration="15" /></rule>
+
+        <rule time="09:16"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:29"><then action="UseStation" area="Work0" stationType="A1" duration="15" /></rule>
+
+        <rule time="09:59"><then action="MoveTo" area="Home2" /></rule>
+    </agent>
+
+    <agent id="Agent_27">
+        <rule time="08:04"><then action="UseStation" area="Sleep" stationType="Bed3" duration="20" /></rule>
+
+        <rule time="08:39"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:57"><then action="UseStation" area="Work0" stationType="A2" duration="15" /></rule>
+
+        <rule time="09:17"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:30"><then action="UseStation" area="Work0" stationType="A2" duration="15" /></rule>
+
+        <rule time="10:00"><then action="MoveTo" area="Home3" /></rule>
+
+        <rule time="10:12"><then action="UseStation" area="Sleep" stationType="Bed3" duration="20" /></rule>
+    </agent>
+
+    <agent id="Agent_28">
+        <rule time="08:06"><then action="Idle" duration="19" /></rule>
+
+        <rule time="08:40"><then action="MoveTo" area="Work0" /></rule>
+
+        <rule time="08:58"><then action="UseStation" area="Work0" stationType="A3" duration="15" /></rule>
+
+        <rule time="09:18"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:31"><then action="UseStation" area="Work0" stationType="A3" duration="15" /></rule>
+
+        <rule time="10:01"><then action="MoveTo" area="Home4" /></rule>
+    </agent>
+
+    <agent id="Agent_29">
+        <rule time="08:07"><then action="Idle" duration="20" /></rule>
+
+        <rule time="08:41"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="08:59"><then action="UseStation" area="Work1" stationType="A4" duration="15" /></rule>
+
+        <rule time="09:19"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:32"><then action="UseStation" area="Work1" stationType="A4" duration="15" /></rule>
+
+        <rule time="10:02"><then action="MoveTo" area="Home5" /></rule>
+    </agent>
+
+    <agent id="Agent_30">
+        <rule time="08:08"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:42"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="09:00"><then action="UseStation" area="Work1" stationType="A5" duration="15" /></rule>
+
+        <rule time="09:20"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:33"><then action="UseStation" area="Work1" stationType="A5" duration="15" /></rule>
+
+        <rule time="10:03"><then action="MoveTo" area="Home6" /></rule>
+    </agent>
+
+    <agent id="Agent_31">
+        <rule time="08:09"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:43"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="09:01"><then action="UseStation" area="Work1" stationType="A6" duration="15" /></rule>
+
+        <rule time="09:21"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:34"><then action="UseStation" area="Work1" stationType="A6" duration="15" /></rule>
+
+        <rule time="10:04"><then action="MoveTo" area="Home7" /></rule>
+    </agent>
+
+    <agent id="Agent_32">
+        <rule time="08:10"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:44"><then action="MoveTo" area="Work1" /></rule>
+
+        <rule time="09:02"><then action="UseStation" area="Work1" stationType="A7" duration="15" /></rule>
+
+        <rule time="09:22"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:35"><then action="UseStation" area="Work1" stationType="A7" duration="15" /></rule>
+
+        <rule time="10:05"><then action="MoveTo" area="Home8" /></rule>
+    </agent>
+
+    <agent id="Agent_33">
+        <rule time="08:11"><then action="Idle" duration="18" /></rule>
+
+        <rule time="08:45"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="09:03"><then action="UseStation" area="Work2" stationType="A8" duration="15" /></rule>
+
+        <rule time="09:23"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:36"><then action="UseStation" area="Work2" stationType="A8" duration="15" /></rule>
+
+        <rule time="10:06"><then action="MoveTo" area="Home9" /></rule>
+    </agent>
+
+    <agent id="Agent_34">
+        <rule time="08:12"><then action="Idle" duration="19" /></rule>
+
+        <rule time="08:46"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="09:04"><then action="UseStation" area="Work2" stationType="A9" duration="15" /></rule>
+
+        <rule time="09:24"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:37"><then action="UseStation" area="Work2" stationType="A9" duration="15" /></rule>
+
+        <rule time="10:07"><then action="MoveTo" area="Home10" /></rule>
+    </agent>
+
+    <agent id="Agent_35">
+        <rule time="08:13"><then action="Idle" duration="20" /></rule>
+
+        <rule time="08:47"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="09:05"><then action="UseStation" area="Work2" stationType="A10" duration="15" /></rule>
+
+        <rule time="09:25"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:38"><then action="UseStation" area="Work2" stationType="A10" duration="15" /></rule>
+
+        <rule time="10:08"><then action="MoveTo" area="Home11" /></rule>
+    </agent>
+
+    <agent id="Agent_36">
+        <rule time="08:14"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:48"><then action="MoveTo" area="Work2" /></rule>
+
+        <rule time="09:06"><then action="UseStation" area="Work2" stationType="A11" duration="15" /></rule>
+
+        <rule time="09:26"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:39"><then action="UseStation" area="Work2" stationType="A11" duration="15" /></rule>
+
+        <rule time="10:09"><then action="MoveTo" area="Home12" /></rule>
+    </agent>
+
+    <agent id="Agent_37">
+        <rule time="08:05"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:49"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="09:07"><then action="UseStation" area="Work3" stationType="A12" duration="15" /></rule>
+
+        <rule time="09:27"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:40"><then action="UseStation" area="Work3" stationType="A12" duration="15" /></rule>
+
+        <rule time="10:10"><then action="MoveTo" area="Home13" /></rule>
+    </agent>
+
+    <agent id="Agent_38">
+        <rule time="08:06"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:50"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="09:08"><then action="UseStation" area="Work3" stationType="A13" duration="15" /></rule>
+
+        <rule time="09:28"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:41"><then action="UseStation" area="Work3" stationType="A13" duration="15" /></rule>
+
+        <rule time="10:11"><then action="MoveTo" area="Home14" /></rule>
+    </agent>
+
+    <agent id="Agent_39">
+        <rule time="08:07"><then action="Idle" duration="18" /></rule>
+
+        <rule time="08:51"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="09:09"><then action="UseStation" area="Work3" stationType="A14" duration="15" /></rule>
+
+        <rule time="09:29"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:42"><then action="UseStation" area="Work3" stationType="A14" duration="15" /></rule>
+
+        <rule time="10:12"><then action="MoveTo" area="Home15" /></rule>
+    </agent>
+
+    <agent id="Agent_40">
+        <rule time="08:08"><then action="Idle" duration="19" /></rule>
+
+        <rule time="08:52"><then action="MoveTo" area="Work3" /></rule>
+
+        <rule time="09:10"><then action="UseStation" area="Work3" stationType="A15" duration="15" /></rule>
+
+        <rule time="09:30"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:43"><then action="UseStation" area="Work3" stationType="A15" duration="15" /></rule>
+
+        <rule time="10:13"><then action="MoveTo" area="Home16" /></rule>
+    </agent>
+
+    <agent id="Agent_41">
+        <rule time="08:09"><then action="Idle" duration="20" /></rule>
+
+        <rule time="08:53"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="09:11"><then action="UseStation" area="Work4" stationType="A16" duration="15" /></rule>
+
+        <rule time="09:31"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:44"><then action="UseStation" area="Work4" stationType="A16" duration="15" /></rule>
+
+        <rule time="10:14"><then action="MoveTo" area="Home17" /></rule>
+    </agent>
+
+    <agent id="Agent_42">
+        <rule time="08:10"><then action="Idle" duration="15" /></rule>
+
+        <rule time="08:54"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="09:12"><then action="UseStation" area="Work4" stationType="A17" duration="15" /></rule>
+
+        <rule time="09:32"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:45"><then action="UseStation" area="Work4" stationType="A17" duration="15" /></rule>
+
+        <rule time="10:15"><then action="MoveTo" area="Home18" /></rule>
+    </agent>
+
+    <agent id="Agent_43">
+        <rule time="08:11"><then action="Idle" duration="16" /></rule>
+
+        <rule time="08:55"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="09:13"><then action="UseStation" area="Work4" stationType="A18" duration="15" /></rule>
+
+        <rule time="09:33"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:46"><then action="UseStation" area="Work4" stationType="A18" duration="15" /></rule>
+
+        <rule time="10:16"><then action="MoveTo" area="Home19" /></rule>
+    </agent>
+
+    <agent id="Agent_44">
+        <rule time="08:12"><then action="Idle" duration="17" /></rule>
+
+        <rule time="08:56"><then action="MoveTo" area="Work4" /></rule>
+
+        <rule time="09:14"><then action="UseStation" area="Work4" stationType="A19" duration="15" /></rule>
+
+        <rule time="09:34"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:47"><then action="UseStation" area="Work4" stationType="A19" duration="15" /></rule>
+
+        <rule time="10:17"><then action="MoveTo" area="Home20" /></rule>
+    </agent>
+
+    <agent id="Agent_45">
+        <rule time="08:13"><then action="Idle" duration="18" /></rule>
+
+        <rule time="08:57"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:15"><then action="UseStation" area="Work5" stationType="A20" duration="15" /></rule>
+
+        <rule time="09:35"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:48"><then action="UseStation" area="Work5" stationType="A20" duration="15" /></rule>
+
+        <rule time="10:18"><then action="MoveTo" area="Home21" /></rule>
+    </agent>
+
+    <agent id="Agent_46">
+        <rule time="08:14"><then action="Idle" duration="19" /></rule>
+
+        <rule time="08:58"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:16"><then action="UseStation" area="Work5" stationType="A21" duration="15" /></rule>
+
+        <rule time="09:36"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:49"><then action="UseStation" area="Work5" stationType="A21" duration="15" /></rule>
+
+        <rule time="10:19"><then action="MoveTo" area="Home22" /></rule>
+    </agent>
+
+    <agent id="Agent_47">
+        <rule time="08:05"><then action="Idle" duration="20" /></rule>
+
+        <rule time="08:59"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:17"><then action="UseStation" area="Work5" stationType="A22" duration="15" /></rule>
+
+        <rule time="09:37"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:50"><then action="UseStation" area="Work5" stationType="A22" duration="15" /></rule>
+
+        <rule time="10:20"><then action="MoveTo" area="Home23" /></rule>
+    </agent>
+
+    <agent id="Agent_48">
+        <rule time="08:06"><then action="Idle" duration="15" /></rule>
+
+        <rule time="09:00"><then action="MoveTo" area="Work5" /></rule>
+
+        <rule time="09:18"><then action="UseStation" area="Work5" stationType="A23" duration="15" /></rule>
+
+        <rule time="09:38"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:51"><then action="UseStation" area="Work5" stationType="A23" duration="15" /></rule>
+
+        <rule time="10:21"><then action="MoveTo" area="Home24" /></rule>
+    </agent>
+
+    <agent id="Agent_49">
+        <rule time="08:07"><then action="Idle" duration="16" /></rule>
+
+        <rule time="09:01"><then action="MoveTo" area="Work6" /></rule>
+
+        <rule time="09:19"><then action="UseStation" area="Work6" stationType="A24" duration="15" /></rule>
+
+        <rule time="09:39"><then action="Trigger" id="Break" /></rule>
+
+        <rule time="09:52"><then action="UseStation" area="Work6" stationType="A24" duration="15" /></rule>
+
+        <rule time="10:22"><then action="MoveTo" area="Home25" /></rule>
+    </agent>
+
+</schedule>

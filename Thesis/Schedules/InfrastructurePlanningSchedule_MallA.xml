@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- TIME-OF-DAY: HH:MM is simulation clock time (minutes from midnight). startHour/startMinute in SimulationConfig set the clock start (default 08:00). -->
+<!--
+  UC3 Shopping Mall A (congested) â€” ONE food court only.
+  Pair with layoutVariant=MallA and serviceStationCapacity=1.
+
+  FoodCourt map setup (single court) â€” use AAgentSuperStation:
+    - Place AAgentSuperStation, Actor Tag = FoodCourt
+    - Assign FoodCounter / FoodTable stations to its Stations array
+      (prefer â‰¤3 for the Super Station limit, or keep 4+4 and accept the editor warning)
+    - StationIdentifier / tag: FoodCounter or FoodTable
+  MoveTo still uses area="FoodCourt"; UseStation stages use superStation="FoodCourt".
+
+  Food flow uses multi-stage: Counter â†’ Table (agent-owned pipeline).
+  Shop UseStation remains single-stage (AAgentArea).
+
+  Timing notes: late Exits (02:xx) and earlier seating/food for Agent_3/8
+  allow Counter queues without stale-skipping Exit (45 min retry window).
+-->
+<schedule>
+
+    <agent id="Agent_0">
+        <rule time="08:02"><then action="Idle" duration="8" /></rule>
+        <rule time="08:12"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:22"><then action="UseStation" area="ShopA" stationType="ShopA_Desk" duration="10" /></rule>
+        <rule time="08:36"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:46">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="09:16"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_1">
+        <rule time="08:04"><then action="Idle" duration="8" /></rule>
+        <rule time="08:14"><then action="MoveTo" area="ShopB" /></rule>
+        <rule time="08:24"><then action="UseStation" area="ShopB" stationType="ShopB_Desk" duration="10" /></rule>
+        <rule time="08:38"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:48">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="09:18"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_2">
+        <rule time="08:03"><then action="Idle" duration="10" /></rule>
+        <rule time="08:15"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:28"><then action="MoveTo" area="ShopB" /></rule>
+        <rule time="08:40"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:52">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <!-- Extra slack: single FoodCourt queues can delay Counterâ†’Table completion. -->
+        <rule time="10:00"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_3">
+        <rule time="08:06"><then action="Idle" duration="8" /></rule>
+        <rule time="08:16"><then action="MoveTo" area="ShopB" /></rule>
+        <!-- Seat earlier so FoodCourt join is not last in the congested queue. -->
+        <rule time="08:24"><then action="UseStation" area="SeatingArea" duration="10" /></rule>
+        <rule time="08:36"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:42">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <!-- Late exit: avoids stale-skip after long Counter queue (seen at 01:24). -->
+        <rule time="10:30"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_4">
+        <rule time="08:05"><then action="Idle" duration="9" /></rule>
+        <rule time="08:18"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:28">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="08:58"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_5">
+        <rule time="08:08"><then action="Idle" duration="7" /></rule>
+        <rule time="08:20"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:32"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:42">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="09:12"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_6">
+        <rule time="08:07"><then action="Idle" duration="8" /></rule>
+        <rule time="08:17"><then action="MoveTo" area="ShopB" /></rule>
+        <rule time="08:29"><then action="UseStation" area="ShopB" stationType="ShopB_Desk" duration="10" /></rule>
+        <rule time="08:43"><then action="UseStation" area="SeatingArea" duration="10" /></rule>
+        <!-- Slack for seating queue behind Agent_8 / Agent_3. -->
+        <rule time="09:25"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_7">
+        <rule time="08:09"><then action="Idle" duration="8" /></rule>
+        <rule time="08:21"><then action="MoveTo" area="ShopA" /></rule>
+        <rule time="08:33"><then action="MoveTo" area="ShopB" /></rule>
+        <rule time="08:47"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:57">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="10:10"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_8">
+        <rule time="08:10"><then action="Idle" duration="8" /></rule>
+        <rule time="08:22"><then action="UseStation" area="SeatingArea" duration="10" /></rule>
+        <!-- Wider gap after seating: travel to seats is often slow on MallA. -->
+        <rule time="08:40"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:50">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="10:20"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+    <agent id="Agent_9">
+        <rule time="08:11"><then action="Idle" duration="8" /></rule>
+        <rule time="08:23"><then action="MoveTo" area="FoodCourt" /></rule>
+        <rule time="08:33">
+            <then action="UseStation">
+                <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+                <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+            </then>
+        </rule>
+        <rule time="09:03"><then action="MoveTo" area="Exit1" /></rule>
+    </agent>
+
+</schedule>

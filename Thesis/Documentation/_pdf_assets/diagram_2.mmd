@@ -1,0 +1,44 @@
+flowchart LR
+  subgraph Gate
+    Reg[USimulationFeatureRegistry]
+  end
+
+  subgraph Core
+    SM[AScheduleManager]
+    FC[AFlockController]
+    Boid[ABoidsAB]
+    St[AAgentStation]
+  end
+
+  subgraph Layers
+    Needs[UAgentNeedsComponent]
+    Prio[UAgentPrioritySelectorComponent]
+    Fall[UAgentFallbackHandlerComponent]
+  end
+
+  subgraph UC
+    EM[AEmergencyManager]
+    DUL[ADailyUrbanLifeManager]
+    IP[AInfrastructurePlanningManager]
+  end
+
+  subgraph Support
+    Nav[NavMesh + Sidewalk filter]
+    Route[UCrowdRoutingService]
+    An[USimulationAnalytics]
+  end
+
+  Reg --> UC
+  Reg --> Core
+  SM --> Boid
+  FC --> Boid
+  Needs --> Prio
+  Prio --> Boid
+  Fall --> Boid
+  Boid --> Nav
+  Boid --> St
+  EM --> Boid
+  DUL --> SM
+  IP --> SM
+  Route --> Boid
+  Boid --> An

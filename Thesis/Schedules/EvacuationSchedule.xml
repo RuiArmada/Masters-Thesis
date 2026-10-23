@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- TIME-OF-DAY: HH:MM is simulation clock time (minutes from midnight). startHour/startMinute in SimulationConfig set the clock start (default 08:00). -->
+<!--
+  UC1 Emergency Evacuation â€” timed incident without requiring the UI button.
+  Keep WBP_Evacuation button as-is for manual drills; this schedule fires the same
+  AEmergencyManager::TriggerGlobalEvacuation() path automatically.
+
+  Map setup:
+    - Evacuation.umap must contain AEmergencyManager + AIncidentManager
+    - enableEvacuation=true in SimulationConfig.xml
+    - AScheduleManager::RelativeSchedulePath = Schedules/EvacuationSchedule.xml
+    - At least one registered agent matching the coordinator id below (default Agent_0)
+
+  Incident time: change the rule time below to shift when the emergency starts.
+-->
+<schedule>
+
+    <!-- Coordinator only â€” global evacuation is idempotent; one agent is enough. -->
+    <agent id="Agent_0">
+        <rule time="08:05">
+            <then action="StartEvacuation"/>
+        </rule>
+    </agent>
+
+</schedule>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pedestrian validation: Corner — all agents to CornerExit -->
+<!-- SuperGroup reduces duplication; add more <agent ref="..."/> to scale population. -->
+
+<schedule>
+
+    <superGroup id="Corner_All">
+        <members>
+            <agent ref="Agent_0"/>
+            <agent ref="Agent_1"/>
+            <agent ref="Agent_2"/>
+            <agent ref="Agent_3"/>
+            <agent ref="Agent_4"/>
+            <agent ref="Agent_5"/>
+            <agent ref="Agent_6"/>
+            <agent ref="Agent_7"/>
+            <agent ref="Agent_8"/>
+            <agent ref="Agent_9"/>
+            <agent ref="Agent_10"/>
+            <agent ref="Agent_11"/>
+            <agent ref="Agent_12"/>
+            <agent ref="Agent_13"/>
+            <agent ref="Agent_14"/>
+            <agent ref="Agent_15"/>
+            <agent ref="Agent_16"/>
+            <agent ref="Agent_17"/>
+            <agent ref="Agent_18"/>
+            <agent ref="Agent_19"/>
+        </members>
+        <rule time="00:00"><then action="Idle" duration="2"/></rule>
+        <rule time="00:04"><then action="MoveTo" area="CornerExit"/></rule>
+    </superGroup>
+
+</schedule>

@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- TIME-OF-DAY: HH:MM is simulation clock time (minutes from midnight). startHour/startMinute in SimulationConfig set the clock start (default 08:00). -->
+<!--
+  Phase 1 demo: Agent_0 presses EntranceButton2 to open Entrance2 gate.
+  Later agents MoveTo Entrance2Side once the gate is open.
+
+  Editor setup (MallA or MallB):
+    1. Place AMallEntranceGate over the Entrance2 corridor (tag optional).
+       bStartOpen = false. Size GateVolume to block the passage when closed.
+    2. Place AInteractionButton near a reachable sidewalk point.
+       Actor Tags: EntranceButton2
+       LinkedEntrance = the AMallEntranceGate above
+       Place InteractionPoint on NavMesh (floor height).
+    3. Place an empty actor tagged Entrance2Side on the far side of the gate
+       (destination used after the gate opens).
+    4. Point ScheduleManager RelativeSchedulePath at this file
+       (or set infrastructurePlanning scheduleFile for a test run).
+
+  Expected log sequence:
+    [GoToAction] Agent_0 -> ...
+    [InteractAction] Agent_0 interacted with ...
+    [MallEntranceGate] ... OPEN
+    [GoToAction] Agent_1 -> Entrance2Side ...
+-->
+<schedule>
+
+    <!-- Operator: walk to button, press once, open Entrance2 -->
+    <agent id="Agent_0">
+        <rule time="08:02"><then action="Idle" duration="2"/></rule>
+        <rule time="08:04">
+            <then action="Interact" target="EntranceButton2"/>
+        </rule>
+        <rule time="08:20"><then action="MoveTo" area="Exit1"/></rule>
+    </agent>
+
+    <!-- Followers: after gate should be open, route via Entrance2 side -->
+    <agent id="Agent_1">
+        <rule time="08:02"><then action="Idle" duration="4"/></rule>
+        <rule time="08:10"><then action="MoveTo" area="Entrance2Side"/></rule>
+        <rule time="08:30"><then action="MoveTo" area="Exit1"/></rule>
+    </agent>
+
+    <agent id="Agent_2">
+        <rule time="08:02"><then action="Idle" duration="4"/></rule>
+        <rule time="08:12"><then action="MoveTo" area="Entrance2Side"/></rule>
+        <rule time="08:32"><then action="MoveTo" area="Exit1"/></rule>
+    </agent>
+
+    <agent id="Agent_3">
+        <rule time="08:02"><then action="Idle" duration="4"/></rule>
+        <rule time="08:14"><then action="MoveTo" area="Entrance2Side"/></rule>
+        <rule time="08:34"><then action="MoveTo" area="Exit1"/></rule>
+    </agent>
+
+</schedule>
