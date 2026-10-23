@@ -41,8 +41,9 @@ Thesis/Platforms/
 Thesis/Plugins/**/Binaries/
 Thesis/Plugins/**/Intermediate/
 
-# Editor-generated config (SimulationConfig.xml falls back to built-in defaults)
-Thesis/Config/
+# Editor-generated config, except the simulation settings
+Thesis/Config/*
+!Thesis/Config/SimulationConfig.xml
 
 # Built lighting data for maps
 *_BuiltData.uasset
