@@ -18,5 +18,8 @@ public class Thesis : ModuleRules
             "XmlParser",   // XML Parser module
             "NavigationSystem"  // Add NavigationSystem module
         });
+
+        // Frame, thread and GPU timings for the opt-in stress test (UStressTestSubsystem).
+        PrivateDependencyModuleNames.AddRange(new string[] { "RenderCore", "RHI" });
     }
 }

@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Runtime config (preferred by USimulationFeatureRegistry).
+  Project template: Config/SimulationConfig.xml
+  Local demo overrides live here â€” do not commit sensitive experiment tweaks unless intentional.
+-->
+<simulation>
+  <features>
+    <!--
+      enableDailyUrbanLife in this file is only a fallback.
+      Map gates: ON for DailyUrban* and Validation/V0*_ maps; OFF for MallA/MallB and other use cases.
+    -->
+    <feature name="enableEvacuation" value="true"/>
+    <feature name="enableLeadership" value="false"/>
+    <feature name="enableCopsAndRobbers" value="false"/>
+    <feature name="enableInfrastructureAnalysis" value="true"/>
+    <feature name="enableDailyUrbanLife" value="true"/>
+    <!-- Auto-ON for Validation/V0*_ maps via map gate; explicit false keeps UC maps clean. -->
+    <feature name="enableValidationStats" value="true"/>
+  </features>
+
+  <dailyUrbanLife>
+    <enableNeeds value="false"/>
+    <needsRateScale value="0.1"/>
+    <startAgentsAtHome value="true"/>
+    <maxScheduleMinuteOffset value="0"/>
+    <walkingSpeedMin value="170"/>
+    <walkingSpeedMax value="230"/>
+    <interactionPauseMin value="2"/>
+    <interactionPauseMax value="5"/>
+    <!-- <scheduleFile value="Schedules/Validation/Validation_Unidirectional.xml"/> -->
+    <breakAreaTag value="Plaza"/>
+    <homeReturnOverridesNeeds value="true"/>
+    <minStationsPerWorkArea value="4"/>
+  </dailyUrbanLife>
+
+  <evacuation>
+    <globalRadius value="999999"/>
+    <distanceWeight value="1.0"/>
+    <congestionWeight value="2.0"/>
+    <reevaluationInterval value="5.0"/>
+    <switchThreshold value="0.35"/>
+    <maxReassignmentAttempts value="3"/>
+    <preferNearestExitInitially value="true"/>
+  </evacuation>
+
+  <infrastructurePlanning>
+    <!--
+      autoSelectFromMap=true (default): opening MallA/MallB maps picks
+      Schedules/InfrastructurePlanningSchedule_MallA.xml or _MallB.xml
+      and sets capacity 1 (A) / 2 (B). layoutVariant/scheduleFile below are fallbacks.
+      Set autoSelectFromMap=false to force the values written here.
+    -->
+    <autoSelectFromMap value="false"/>
+    <layoutVariant value="MallA"/>
+    <comparisonBaseline value="MallA"/>
+    <scheduleFile value="Schedules/InfrastructurePlanningSchedule_MallA.xml"/>
+    <samplingIntervalSeconds value="5"/>
+    <!-- Wall-clock minutes before auto-export/end; raise so late exits (02:xx) can finish. -->
+    <runDurationSimMinutes value="200"/>
+    <enableVisualization value="false"/>
+    <reuseDailyUrbanLifeBootstrap value="true"/>
+    <serviceStationCapacity value="3"/>
+    <serviceStationTag value="ServicePoint"/>
+    <autoExportOnEnd value="true"/>
+    <autoExportComparisonOnEnd value="true"/>
+    <comparisonVariant value="MallB"/>
+  </infrastructurePlanning>
+
+  <leadership>
+    <defaultFollowDistance value="200"/>
+    <formationUpdateInterval value="0.5"/>
+    <leadershipOverridesSchedule value="true"/>
+  </leadership>
+
+  <copsAndRobbers>
+    <policeDetectionRadius value="4200"/>
+    <robberDetectionRadius value="900"/>
+    <crimeProbability value="0.3"/>
+    <crimeCheckInterval value="5"/>
+    <crimeDuration value="8"/>
+    <captureRadius value="150"/>
+    <pursuitUpdateInterval value="0.4"/>
+    <fleeDistance value="800"/>
+    <chaseRunSpeed value="450"/>
+    <civiliansAvoidRobbers value="true"/>
+    <civilianAvoidRadius value="700"/>
+  </copsAndRobbers>
+
+  <validationStats>
+    <showOnScreenPanel value="true"/>
+    <sampleIntervalSeconds value="0.5"/>
+    <waitingSpeedThreshold value="20"/>
+    <congestionSpeedThreshold value="80"/>
+  </validationStats>
+
+  <simulationClock>
+    <startHour value="7"/>
+    <startMinute value="30"/>
+  </simulationClock>
+  <simulationMode mode="Fast"/>
+  <fastSimulation>
+    <runDurationSimMinutes value="230"/>
+    <randomSeed value="1"/>
+    <autoExportOnEnd value="true"/>
+  </fastSimulation>
+</simulation>
+

@@ -65,9 +65,9 @@ void USimulationAnalytics::BindSimulationDelegates()
 		UGameplayStatics::GetActorOfClass(GetWorld(), AEmergencyManager::StaticClass())))
 	{
 		CachedEmergencyManager = EM;
-		EM->OnEvacuationStarted.AddDynamic(this, &USimulationAnalytics::HandleEvacuationStarted);
-		EM->OnEvacuationEnded.AddDynamic(this, &USimulationAnalytics::HandleEvacuationEnded);
-		EM->OnEvacuationTimerUpdated.AddDynamic(this, &USimulationAnalytics::HandleEvacuationTimerUpdated);
+		EM->OnEvacuationStarted.AddUniqueDynamic(this, &USimulationAnalytics::HandleEvacuationStarted);
+		EM->OnEvacuationEnded.AddUniqueDynamic(this, &USimulationAnalytics::HandleEvacuationEnded);
+		EM->OnEvacuationTimerUpdated.AddUniqueDynamic(this, &USimulationAnalytics::HandleEvacuationTimerUpdated);
 	}
 
 	TArray<AActor*> Boids;
@@ -76,13 +76,13 @@ void USimulationAnalytics::BindSimulationDelegates()
 	{
 		if (ABoidsAB* Boid = Cast<ABoidsAB>(Actor))
 		{
-			Boid->OnAgentFleeStarted.AddDynamic(this, &USimulationAnalytics::HandleAgentFleeStarted);
-			Boid->OnAgentExitChosen.AddDynamic(this, &USimulationAnalytics::HandleAgentExitChosen);
-			Boid->OnAgentExitReassigned.AddDynamic(this, &USimulationAnalytics::HandleAgentExitReassigned);
-			Boid->OnAgentExitCompleted.AddDynamic(this, &USimulationAnalytics::HandleAgentExitCompleted);
-			Boid->OnAgentEvacuationSuccess.AddDynamic(this, &USimulationAnalytics::HandleAgentEvacuationSuccess);
-			Boid->OnAgentCasualty.AddDynamic(this, &USimulationAnalytics::HandleAgentCasualty);
-			Boid->OnAgentReactionDelayComplete.AddDynamic(this, &USimulationAnalytics::HandleAgentReactionDelayComplete);
+			Boid->OnAgentFleeStarted.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentFleeStarted);
+			Boid->OnAgentExitChosen.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentExitChosen);
+			Boid->OnAgentExitReassigned.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentExitReassigned);
+			Boid->OnAgentExitCompleted.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentExitCompleted);
+			Boid->OnAgentEvacuationSuccess.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentEvacuationSuccess);
+			Boid->OnAgentCasualty.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentCasualty);
+			Boid->OnAgentReactionDelayComplete.AddUniqueDynamic(this, &USimulationAnalytics::HandleAgentReactionDelayComplete);
 		}
 	}
 
@@ -92,8 +92,8 @@ void USimulationAnalytics::BindSimulationDelegates()
 	{
 		if (AExitPoint* Exit = Cast<AExitPoint>(Actor))
 		{
-			Exit->OnBoidExited.AddDynamic(this, &USimulationAnalytics::HandleBoidExited);
-			Exit->OnQueueDepthChanged.AddDynamic(this, &USimulationAnalytics::HandleQueueDepthChanged);
+			Exit->OnBoidExited.AddUniqueDynamic(this, &USimulationAnalytics::HandleBoidExited);
+			Exit->OnQueueDepthChanged.AddUniqueDynamic(this, &USimulationAnalytics::HandleQueueDepthChanged);
 		}
 	}
 }
@@ -173,7 +173,11 @@ void USimulationAnalytics::EndEvacuationSession()
 
 void USimulationAnalytics::HandleEvacuationStarted()
 {
-	BeginEvacuationSession();
+	// The emergency manager already starts the session; do not reset counters mid-evacuation.
+	if (!bSessionActive)
+	{
+		BeginEvacuationSession();
+	}
 }
 
 void USimulationAnalytics::HandleEvacuationEnded()

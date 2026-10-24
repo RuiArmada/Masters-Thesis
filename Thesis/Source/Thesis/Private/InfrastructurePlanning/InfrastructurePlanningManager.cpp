@@ -9,6 +9,7 @@
 #include "Simulation/SimulationFeatureRegistry.h"
 #include "Simulation/SimulationAnalytics.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 #include "Misc/Paths.h"
 #include "HAL/PlatformFileManager.h"
 
@@ -394,13 +395,15 @@ void AInfrastructurePlanningManager::ApplyLayoutVariantSettings()
 		return;
 	}
 
-	TArray<AActor*> Stations;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), Settings.ServiceStationTag, Stations);
-	for (AActor* Actor : Stations)
+	// A station is a service station if it carries the actor tag or its StationIdentifier matches the same name
+	// (so serviceStationTag can also target identifier-only stations such as FoodCounter / FoodTable).
+	TArray<AAgentStation*> Stations;
+	for (TActorIterator<AAgentStation> It(GetWorld()); It; ++It)
 	{
-		if (AAgentStation* Station = Cast<AAgentStation>(Actor))
+		if (It->MatchesIdentifier(Settings.ServiceStationTag.ToString()))
 		{
-			Station->SetMaxConcurrentOccupants(Settings.ServiceStationCapacity);
+			It->SetMaxConcurrentOccupants(Settings.ServiceStationCapacity);
+			Stations.Add(*It);
 		}
 	}
 

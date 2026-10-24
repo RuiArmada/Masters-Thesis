@@ -1,5 +1,7 @@
 #include "BoidsAB.h"
 #include "FlockController.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "Engine/World.h"
@@ -36,6 +38,17 @@
 // Station nav log diagnostics (no in-world draw).
 static constexpr bool GStationNavDebug = true;
 static constexpr float GStationNavStopLogCooldown = 2.f;
+
+// QA FIX: a frame can move an agent several metres in Accurate Time. When the remaining distance to a point
+// target is less than one frame of travel, scale the input so the step ends near the target.
+static float ArrivalInputScale(const ACharacter* Agent, float RemainingDistance, float DeltaTime)
+{
+    const UCharacterMovementComponent* Move = Agent ? Agent->GetCharacterMovement() : nullptr;
+    const float FrameTravel = Move ? Move->GetMaxSpeed() * DeltaTime : 0.f;
+    return FrameTravel > RemainingDistance && FrameTravel > KINDA_SMALL_NUMBER
+        ? FMath::Clamp(RemainingDistance / FrameTravel, 0.05f, 1.f)
+        : 1.f;
+}
 
 #pragma region UE_Basics
 
@@ -157,6 +170,21 @@ void ABoidsAB::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    // QA ONLY: per-frame movement trace of one agent (-TraceAgent=Agent_N).
+    FString TraceId;
+    if (FParse::Value(FCommandLine::Get(), TEXT("TraceAgent="), TraceId) && AgentId.ToString() == TraceId
+        && (bIsMoving || CurrentBehavior != EBoidBehaviorState::Normal))
+    {
+        const FVector L = GetActorLocation();
+        const UCharacterMovementComponent* MC = GetCharacterMovement();
+        const FVector WP = Waypoints.IsValidIndex(CurrentWaypointIndex) ? Waypoints[CurrentWaypointIndex] : FVector::ZeroVector;
+        UE_LOG(LogTemp, Log,
+            TEXT("[TraceAgent] %s t=%.2f loc=(%.0f,%.0f,%.0f) vel=(%.0f,%.0f) wp=%d/%d wpLoc=(%.0f,%.0f,%.0f) dXY=%.0f target=(%.0f,%.0f,%.0f) beh=%d slot=(%.0f,%.0f) maxSpd=%.0f"),
+            *AgentId.ToString(), GetWorld()->GetTimeSeconds(), L.X, L.Y, L.Z, GetVelocity().X, GetVelocity().Y,
+            CurrentWaypointIndex, Waypoints.Num(), WP.X, WP.Y, WP.Z, FVector::Dist2D(L, WP), TargetL.X, TargetL.Y, TargetL.Z,
+            static_cast<int32>(CurrentBehavior), AssignedQueueSlotLocation.X, AssignedQueueSlotLocation.Y, MC ? MC->GetMaxSpeed() : 0.f);
+    }
+
     TickScheduleAction(DeltaTime);
 
     if (bStationInteractionPosing)
@@ -197,8 +225,10 @@ void ABoidsAB::Tick(float DeltaTime)
             }
             else if (Registry->IsAccurateTimeMode())
             {
-                // Needs rates are per real second. Scale once by clock speed so they track simulation seconds.
-                NeedsDelta *= Registry->GetAccurateTimeSettings().SimulationSpeed;
+                // QA FIX: needs rates were tuned at the Visual pace (one real second = one sim minute), like the
+                // authored durations. Advance them by sim minutes: real delta x Accurate speed / Visual speed.
+                const float VisualSpeed = FMath::Max(1.f, Registry->GetSimulationClockSettings().SimulationSpeed);
+                NeedsDelta *= Registry->GetAccurateTimeSettings().SimulationSpeed / VisualSpeed;
             }
         }
 
@@ -232,14 +262,14 @@ void ABoidsAB::Tick(float DeltaTime)
     {
         MoveAlongWaypoints(DeltaTime);
 
-        if (Waypoints.Num() == 0 && AssignedSafeZone.IsValid() && !IsAtAssignedSafeZone())
+        if (CurrentWaypointIndex >= Waypoints.Num() && AssignedSafeZone.IsValid() && !IsAtAssignedSafeZone())
         {
             const FVector ToZone = AssignedSafeZone->GetZoneLocation() - GetActorLocation();
             FVector ToZoneFlat = ToZone;
             ToZoneFlat.Z = 0.f;
             if (!ToZoneFlat.IsNearlyZero())
             {
-                AddMovementInput(ToZoneFlat.GetSafeNormal(), 1.0f);
+                AddMovementInput(ToZoneFlat.GetSafeNormal(), ArrivalInputScale(this, ToZoneFlat.Size(), DeltaTime));
             }
         }
 
@@ -256,13 +286,13 @@ void ABoidsAB::Tick(float DeltaTime)
 
         if (CurrentExit)
         {
-            if (Waypoints.Num() == 0 && !IsAtAssignedQueueSlot() && !AssignedQueueSlotLocation.IsNearlyZero())
+            if (CurrentWaypointIndex >= Waypoints.Num() && !IsAtAssignedQueueSlot() && !AssignedQueueSlotLocation.IsNearlyZero())
             {
                 FVector ToSlot = AssignedQueueSlotLocation - GetActorLocation();
                 ToSlot.Z = 0.f;
                 if (!ToSlot.IsNearlyZero())
                 {
-                    AddMovementInput(ToSlot.GetSafeNormal(), 1.0f);
+                    AddMovementInput(ToSlot.GetSafeNormal(), ArrivalInputScale(this, ToSlot.Size(), DeltaTime));
                 }
             }
 
@@ -298,13 +328,13 @@ void ABoidsAB::Tick(float DeltaTime)
 
         MoveAlongWaypoints(DeltaTime);
 
-        if (Waypoints.Num() == 0 && !IsAtAssignedQueueSlot() && !AssignedQueueSlotLocation.IsNearlyZero())
+        if (CurrentWaypointIndex >= Waypoints.Num() && !IsAtAssignedQueueSlot() && !AssignedQueueSlotLocation.IsNearlyZero())
         {
             FVector ToSlot = AssignedQueueSlotLocation - GetActorLocation();
             ToSlot.Z = 0.f;
             if (!ToSlot.IsNearlyZero())
             {
-                AddMovementInput(ToSlot.GetSafeNormal(), 1.0f);
+                AddMovementInput(ToSlot.GetSafeNormal(), ArrivalInputScale(this, ToSlot.Size(), DeltaTime));
             }
         }
 
@@ -578,6 +608,12 @@ FVector ABoidsAB::ResolveProgressDirection() const
 bool ABoidsAB::ShouldBlendSteeringWhileMoving() const
 {
     if (IsFastSimulationMode())
+    {
+        return false;
+    }
+    // Measurement switch (-NoBlend): plain path following in visual mode, used to evaluate the blend.
+    static const bool bNoBlendCommandLine = FParse::Param(FCommandLine::Get(), TEXT("NoBlend"));
+    if (bNoBlendCommandLine)
     {
         return false;
     }
@@ -1183,7 +1219,21 @@ void ABoidsAB::MoveAlongWaypoints(float DeltaTime)
     // Advance only when feet are near WP height (avoids skipping elevated stair samples in XY).
     constexpr float WaypointArriveXY = 100.f;
     constexpr float WaypointArriveZ = 28.f;
-    if (DistXY < WaypointArriveXY && DistZ < WaypointArriveZ)
+
+    // QA FIX: one frame can cover a whole sim second in Accurate Time (about 2 m), enough to step over the
+    // arrival window (or, on a ramp, its height band), and the look-ahead never turns back past a waypoint.
+    // Also accept a waypoint the agent has walked past along its segment, within two frames' travel at full speed.
+    const UCharacterMovementComponent* WaypointMoveComp = GetCharacterMovement();
+    const float FrameTravel = (WaypointMoveComp ? WaypointMoveComp->GetMaxSpeed() : 200.f) * DeltaTime;
+    const FVector PrevWaypoint = CurrentWaypointIndex > 0 ? Waypoints[CurrentWaypointIndex - 1] : AgentLoc;
+    const FVector SegDir2D = (CurrentTarget - PrevWaypoint).GetSafeNormal2D();
+    const FVector FromWaypoint2D(AgentLoc.X - CurrentTarget.X, AgentLoc.Y - CurrentTarget.Y, 0.f);
+    const bool bPassedWaypoint = !SegDir2D.IsNearlyZero()
+        && FVector::DotProduct(FromWaypoint2D, SegDir2D) > 0.f
+        && DistXY < WaypointArriveXY + 2.f * FrameTravel
+        && DistZ < WaypointArriveZ + FrameTravel;
+
+    if ((DistXY < WaypointArriveXY && DistZ < WaypointArriveZ) || bPassedWaypoint)
     {
         CurrentWaypointIndex++;
         if (CurrentWaypointIndex >= Waypoints.Num())
@@ -2717,10 +2767,12 @@ void ABoidsAB::RefreshWalkSpeedForSimulationMode()
     {
         // CMC stops after 8 substeps of 0.05s. A hitch longer than that advances the clock
         // and leaves the capsule behind. 1.6s of substeps covers that hitch.
-        const float Step = FMath::Max(DefaultMaxSimulationTimeStep, 0.01f);
+        // QA FIX: substep in simulation time (0.05 sim s), not real time. With a 0.05 real-second substep a
+        // 1/30 s frame is one straight 2 m move, and ledge and collision checks miss ramps and edges.
+        const float Step = FMath::Max(DefaultMaxSimulationTimeStep / FMath::Max(Mult, 1.f), 0.0005f);
         const int32 HitchIterations = FMath::CeilToInt(1.6f / Step);
         MoveComp->MaxSimulationIterations = FMath::Max(DefaultMaxSimulationIterations, HitchIterations);
-        MoveComp->MaxSimulationTimeStep = DefaultMaxSimulationTimeStep;
+        MoveComp->MaxSimulationTimeStep = Step;
         // Reach and drop MaxWalkSpeed inside one substep so distance stays on the clock.
         const float Instant = FMath::Max(BaseWalkSpeed * Mult * 50.f, DefaultMaxAcceleration);
         MoveComp->MaxAcceleration = Instant;

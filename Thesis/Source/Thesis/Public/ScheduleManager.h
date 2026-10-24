@@ -232,6 +232,8 @@ public:
 
     bool TryExecuteDueTask(const FName AgentId, FScheduleTask& Task, int32 EffectiveMinute);
     bool TryExecuteDueRule(const FName AgentId, FScheduleRule& Rule, int32 EffectiveMinute);
+    /** Forwards a rule outcome to URunRecorderSubsystem when -RunRecord is active. */
+    void RecordRuleOutcome(const FName AgentId, const FScheduleRule& Rule, int32 EffectiveMinute, const TCHAR* Outcome) const;
 
 protected:
     /** Distance threshold for location checks (e.g., "location == Home"). */

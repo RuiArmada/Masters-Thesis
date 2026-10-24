@@ -23,6 +23,7 @@
 #include "Actions/InteractAction.h"
 #include "Actions/Interactable.h"
 #include "Simulation/SimulationClock.h"
+#include "Simulation/RunRecorderSubsystem.h"
 
 namespace ScheduleAILayer
 {
@@ -611,7 +612,11 @@ void AScheduleManager::FinalizeFastSimulationRun()
     }
 
     // Pause further schedule clock advance for this manager.
-    SimulationClock->SetSimulationSpeed(0.f);
+    // QA ONLY: AccurateTime runs keep the clock going so the infrastructure export still reaches its run length.
+    if (!Registry || !Registry->IsAccurateTimeMode())
+    {
+        SimulationClock->SetSimulationSpeed(0.f);
+    }
 
     const FString Summary = Analytics->BuildFastSessionSummaryLog();
     UE_LOG(LogTemp, Log, TEXT("%s"), *Summary);
@@ -1461,6 +1466,7 @@ void AScheduleManager::ProcessDueSchedulesForCurrentMinute()
                     Rule.TimeMinutes / 60,
                     Rule.TimeMinutes % 60,
                     ScheduleRetryWindowMinutes);
+                RecordRuleOutcome(AgentId, Rule, EffectiveMinute, TEXT("stale_skip"));
                 Rule.LastExecutedDay = DayCounter;
                 continue;
             }
@@ -1506,17 +1512,42 @@ bool AScheduleManager::TryExecuteDueRule(const FName AgentId, FScheduleRule& Rul
             *AgentId.ToString(),
             Rule.TimeMinutes / 60,
             Rule.TimeMinutes % 60);
+        RecordRuleOutcome(AgentId, Rule, EffectiveMinute, TEXT("prob_skip"));
         Rule.LastExecutedDay = DayCounter;
         return true;
     }
 
     if (ExecuteRuleForAgent(AgentId, Rule))
     {
+        RecordRuleOutcome(AgentId, Rule, EffectiveMinute, TEXT("dispatched"));
         Rule.LastExecutedDay = DayCounter;
         return true;
     }
 
+    if (URunRecorderSubsystem* Recorder = GetWorld()->GetSubsystem<URunRecorderSubsystem>())
+    {
+        Recorder->NoteRuleDeferred(AgentId, Rule.TimeMinutes);
+    }
     return false;
+}
+
+void AScheduleManager::RecordRuleOutcome(const FName AgentId, const FScheduleRule& Rule, int32 EffectiveMinute,
+                                         const TCHAR* Outcome) const
+{
+    URunRecorderSubsystem* Recorder = GetWorld() ? GetWorld()->GetSubsystem<URunRecorderSubsystem>() : nullptr;
+    if (!Recorder)
+    {
+        return;
+    }
+
+    FString ActionName = UEnum::GetValueAsString(Rule.ThenAction.Action);
+    int32 SeparatorIndex = INDEX_NONE;
+    if (ActionName.FindLastChar(TEXT(':'), SeparatorIndex))
+    {
+        ActionName.RightChopInline(SeparatorIndex + 1);
+    }
+    ActionName.RemoveFromStart(TEXT("SA_"));
+    Recorder->RecordRule(AgentId, Rule.TimeMinutes, EffectiveMinute, CurrentSimMinute, DayCounter, ActionName, Outcome);
 }
 
 AAgentStation* AScheduleManager::ResolveStationForUse(

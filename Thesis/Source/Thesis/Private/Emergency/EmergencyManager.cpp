@@ -200,6 +200,12 @@ void AEmergencyManager::TriggerGlobalEvacuation()
 	UE_LOG(LogTemp, Log, TEXT("[EmergencyManager] Global evacuation started at %s (radius %.0f)"),
 	       *Center.ToString(), Radius);
 
+	// Start the analytics session before agents react; it binds the per-agent and exit delegates.
+	if (USimulationAnalytics* Analytics = GetWorld()->GetSubsystem<USimulationAnalytics>())
+	{
+		Analytics->BeginEvacuationSession();
+	}
+
 	IncidentManagerRef->TriggerIncident(EIncidentType::Fire, Center, Radius);
 	EnsureAllAgentsEvacuate(Center);
 	StartEvacuationTimer();

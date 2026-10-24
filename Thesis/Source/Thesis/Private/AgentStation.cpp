@@ -1,4 +1,19 @@
 #include "AgentStation.h"
+#include "Simulation/RunRecorderSubsystem.h"
+
+namespace
+{
+    void RecordStationEvent(const AAgentStation* Station, const ABoidsAB* Agent, const TCHAR* Event, int32 QueueLength, int32 Occupants)
+    {
+        if (UWorld* World = Station ? Station->GetWorld() : nullptr)
+        {
+            if (URunRecorderSubsystem* Recorder = World->GetSubsystem<URunRecorderSubsystem>())
+            {
+                Recorder->RecordStationEvent(Station, Agent, Event, QueueLength, Occupants);
+            }
+        }
+    }
+}
 #include "BoidsAB.h"
 #include "Simulation/SimulationAnalytics.h"
 #include "Simulation/SimulationFeatureRegistry.h"
@@ -86,6 +101,7 @@ bool AAgentStation::RequestEnter(ABoidsAB* Agent)
     }
 
     Queue.Add(Agent);
+    RecordStationEvent(this, Agent, TEXT("queue"), Queue.Num(), ActiveOccupants.Num());
     OnAgentEnqueued.Broadcast(Agent);
     if (USimulationAnalytics* Analytics = GetWorld()->GetSubsystem<USimulationAnalytics>())
     {
@@ -106,6 +122,7 @@ void AAgentStation::LeaveStation(ABoidsAB* Agent)
         ClearInteractionTimer(Agent);
         AwaitingArrival.Remove(Agent);
         ActiveOccupants.Remove(Agent);
+        RecordStationEvent(this, Agent, TEXT("leave"), Queue.Num(), ActiveOccupants.Num());
         Agent->OnStationInteractEnd();
         // Defer queue admit: OnStationInteractEnd / Break handlers may still be on the stack
         // (pipeline advance, StartMoveTo). Filling immediately caused null crashes on clients.
@@ -113,7 +130,10 @@ void AAgentStation::LeaveStation(ABoidsAB* Agent)
         return;
     }
 
-    Queue.Remove(Agent);
+    if (Queue.Remove(Agent) > 0)
+    {
+        RecordStationEvent(this, Agent, TEXT("leave_queue"), Queue.Num(), ActiveOccupants.Num());
+    }
 }
 
 bool AAgentStation::IsOccupied() const
@@ -186,6 +206,7 @@ void AAgentStation::BeginInteractionForAgent(ABoidsAB* Agent)
     }
 
     StartInteractionTimer(Agent);
+    RecordStationEvent(this, Agent, TEXT("start"), Queue.Num(), ActiveOccupants.Num());
     Agent->OnStationInteractStart();
 }
 
@@ -202,6 +223,7 @@ void AAgentStation::NotifyOccupantReached(ABoidsAB* Agent)
     }
 
     AwaitingArrival.Remove(Agent);
+    RecordStationEvent(this, Agent, TEXT("arrive"), Queue.Num(), ActiveOccupants.Num());
 
     if (HasInteractionPositioning())
     {
@@ -221,6 +243,7 @@ void AAgentStation::AdmitAgent(ABoidsAB* Agent)
 
     ActiveOccupants.Add(Agent);
     AwaitingArrival.Add(Agent);
+    RecordStationEvent(this, Agent, TEXT("admit"), Queue.Num(), ActiveOccupants.Num());
     OnAgentAdmitted.Broadcast(Agent);
     if (USimulationAnalytics* Analytics = GetWorld()->GetSubsystem<USimulationAnalytics>())
     {
@@ -249,6 +272,7 @@ void AAgentStation::AdmitQueuedAgent(ABoidsAB* Agent)
 
     ActiveOccupants.Add(Agent);
     AwaitingArrival.Add(Agent);
+    RecordStationEvent(this, Agent, TEXT("admit_from_queue"), Queue.Num(), ActiveOccupants.Num());
     OnAgentAdmitted.Broadcast(Agent);
     if (UWorld* World = GetWorld())
     {
@@ -381,6 +405,7 @@ void AAgentStation::OnInteractionTimerExpired(ABoidsAB* Agent)
     ClearInteractionTimer(Agent);
     AwaitingArrival.Remove(Agent);
     ActiveOccupants.Remove(Agent);
+    RecordStationEvent(this, Agent, TEXT("complete"), Queue.Num(), ActiveOccupants.Num());
     Agent->NotifyStationInteractionCompleted();
     OnAgentReleased.Broadcast(Agent);
     if (USimulationAnalytics* Analytics = GetWorld()->GetSubsystem<USimulationAnalytics>())

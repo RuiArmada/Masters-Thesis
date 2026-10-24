@@ -22,6 +22,9 @@ protected:
 	virtual void OnStart() override;
 	virtual void OnTick(float DeltaSeconds) override;
 	virtual void OnFailed(const FString& Reason) override;
+	virtual void OnCompleted() override;
+
+	void RecordTripEvent(const TCHAR* Event, const FString& Detail) const;
 
 	UPROPERTY()
 	FVector TargetLocation = FVector::ZeroVector;
