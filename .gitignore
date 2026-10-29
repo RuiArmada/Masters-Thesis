@@ -41,9 +41,10 @@ Project/Platforms/
 Project/Plugins/**/Binaries/
 Project/Plugins/**/Intermediate/
 
-# Editor-generated config, except the simulation settings
+# Editor-generated config, except the simulation settings and the engine settings the maps need
 Project/Config/*
 !Project/Config/SimulationConfig.xml
+!Project/Config/DefaultEngine.ini
 
 # Built lighting data for maps
 *_BuiltData.uasset

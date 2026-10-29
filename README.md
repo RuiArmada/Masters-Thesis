@@ -11,7 +11,7 @@ Masters-Thesis/
 ├── Project/                         Unreal Engine 5.4 project
 │   ├── Thesis.uproject
 │   ├── Source/Thesis/               C++ module (agents, schedules, stations, scenarios, analytics)
-│   ├── Config/                      SimulationConfig.xml (simulation settings)
+│   ├── Config/                      SimulationConfig.xml (simulation settings) and DefaultEngine.ini
 │   ├── Content/
 │   │   ├── Blueprints/              Agent, spawner, flock and incident blueprints, animation blueprint
 │   │   └── UseCases/                Scenario and validation maps with their blueprints and widgets
@@ -101,7 +101,7 @@ The Starter Content and the Third Person mannequins can be added from the editor
 3. Build the `ThesisEditor` target in the Development Editor configuration for Win64, or open the `.uproject` and let the editor compile the module.
 4. Open one of the maps from the table above in the Content Browser and press Play.
 
-The simulation settings are in [`Project/Config/SimulationConfig.xml`](Project/Config/SimulationConfig.xml). At load this file is copied to `Saved/Config/SimulationConfig.xml` when that copy is missing or older, and local overrides belong in the `Saved` copy. Every option is described in the [configuration guide](Project/Documentation/08_Configuration.md). The engine `.ini` files in `Config/` are not tracked, because the editor generates them on first launch. Run results such as evacuation and mall metrics are exported as CSV files to `Saved/Analytics/`. The validation statistics panel is toggled with the console command `thesis.ValidationDebugPanel 1`.
+The simulation settings are in [`Project/Config/SimulationConfig.xml`](Project/Config/SimulationConfig.xml). At load this file is copied to `Saved/Config/SimulationConfig.xml` when that copy is missing or older, and local overrides belong in the `Saved` copy. Every option is described in the [configuration guide](Project/Documentation/08_Configuration.md). `Config/DefaultEngine.ini` holds the rendering settings the characters need and turns on runtime navigation mesh generation, because the maps are saved without built navigation data. The other engine `.ini` files are not tracked, because the editor generates them on first launch. Run results such as evacuation and mall metrics are exported as CSV files to `Saved/Analytics/`. The validation statistics panel is toggled with the console command `thesis.ValidationDebugPanel 1`.
 
 ## Documentation
 
