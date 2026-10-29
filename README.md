@@ -8,7 +8,7 @@ Agents are `ACharacter` actors (`ABoidsAB`) that combine local flocking with Nav
 
 ```
 Masters-Thesis/
-├── Thesis/                          Unreal Engine 5.4 project
+├── Project/                         Unreal Engine 5.4 project
 │   ├── Thesis.uproject
 │   ├── Source/Thesis/               C++ module (agents, schedules, stations, scenarios, analytics)
 │   ├── Config/                      SimulationConfig.xml (simulation settings)
@@ -73,9 +73,9 @@ Screen recordings of each scenario are attached to the [Demo videos release](htt
 
 ## Third-party content (not included)
 
-The maps and the agent blueprint use art and animation from third-party packs. Their licences do not allow redistribution in a public repository, so they are not part of this repository and the project will not run until they are added. Each pack must be placed in `Thesis/Content/` under the exact folder name below, because the assets reference it by path. These folders are listed in `.gitignore` so they are never committed by accident.
+The maps and the agent blueprint use art and animation from third-party packs. Their licences do not allow redistribution in a public repository, so they are not part of this repository and the project will not run until they are added. Each pack must be placed in `Project/Content/` under the exact folder name below, because the assets reference it by path. These folders are listed in `.gitignore` so they are never committed by accident.
 
-| Folder in `Thesis/Content/` | Source | Used by |
+| Folder in `Project/Content/` | Source | Used by |
 |-----------------------------|--------|---------|
 | `MetaHumans/` (`Amelia`, `Cooper`, `Common`) | MetaHuman characters exported from Quixel Bridge | Agent blueprint `BPBoidsAB` and the `S_CharPresets` structure |
 | `Characters/Mannequins/` | Epic Third Person template | Agent blueprint and jump animations |
@@ -90,35 +90,35 @@ The Starter Content and the Third Person mannequins can be added from the editor
 ## Requirements
 
 - Unreal Engine 5.4
-- Visual Studio 2022 with the "Game development with C++" workload (the `Thesis/.vsconfig` file lists the exact components)
+- Visual Studio 2022 with the "Game development with C++" workload (the `Project/.vsconfig` file lists the exact components)
 - Windows 64-bit (the setup guide assumes Win64 and the Development Editor configuration)
 
 ## Building and running
 
 1. Clone the repository and add the third-party content listed above.
-2. Right-click `Thesis/Thesis.uproject` and choose **Generate Visual Studio project files**.
+2. Right-click `Project/Thesis.uproject` and choose **Generate Visual Studio project files**.
 3. Build the `ThesisEditor` target in the Development Editor configuration for Win64, or open the `.uproject` and let the editor compile the module.
 4. Open one of the maps from the table above in the Content Browser and press Play.
 
-The simulation settings are in [`Thesis/Config/SimulationConfig.xml`](Thesis/Config/SimulationConfig.xml). At load this file is copied to `Saved/Config/SimulationConfig.xml` when that copy is missing or older, and local overrides belong in the `Saved` copy. Every option is described in the [configuration guide](Thesis/Documentation/08_Configuration.md). The engine `.ini` files in `Config/` are not tracked, because the editor generates them on first launch. Run results such as evacuation and mall metrics are exported as CSV files to `Saved/Analytics/`. The validation statistics panel is toggled with the console command `thesis.ValidationDebugPanel 1`.
+The simulation settings are in [`Project/Config/SimulationConfig.xml`](Project/Config/SimulationConfig.xml). At load this file is copied to `Saved/Config/SimulationConfig.xml` when that copy is missing or older, and local overrides belong in the `Saved` copy. Every option is described in the [configuration guide](Project/Documentation/08_Configuration.md). The engine `.ini` files in `Config/` are not tracked, because the editor generates them on first launch. Run results such as evacuation and mall metrics are exported as CSV files to `Saved/Analytics/`. The validation statistics panel is toggled with the console command `thesis.ValidationDebugPanel 1`.
 
 ## Documentation
 
-The full technical guide is in [`Thesis/Documentation`](Thesis/Documentation):
+The full technical guide is in [`Project/Documentation`](Project/Documentation):
 
-1. [Project overview](Thesis/Documentation/01_Project_Overview.md)
-2. [Setup guide](Thesis/Documentation/02_Setup_Guide.md)
-3. [System architecture](Thesis/Documentation/03_System_Architecture.md)
-4. [XML guide](Thesis/Documentation/04_XML_Guide.md)
-5. [Use cases](Thesis/Documentation/05_Use_Cases.md)
-6. [Validation and verification](Thesis/Documentation/06_Validation_and_Verification.md)
-7. [Debug panel](Thesis/Documentation/07_Debug_Panel.md)
-8. [Configuration](Thesis/Documentation/08_Configuration.md)
-9. [API and classes](Thesis/Documentation/09_API_and_Classes.md)
-10. [Extending the project](Thesis/Documentation/10_Extending_the_Project.md)
-11. [Known limitations](Thesis/Documentation/11_Known_Limitations.md)
+1. [Project overview](Project/Documentation/01_Project_Overview.md)
+2. [Setup guide](Project/Documentation/02_Setup_Guide.md)
+3. [System architecture](Project/Documentation/03_System_Architecture.md)
+4. [XML guide](Project/Documentation/04_XML_Guide.md)
+5. [Use cases](Project/Documentation/05_Use_Cases.md)
+6. [Validation and verification](Project/Documentation/06_Validation_and_Verification.md)
+7. [Debug panel](Project/Documentation/07_Debug_Panel.md)
+8. [Configuration](Project/Documentation/08_Configuration.md)
+9. [API and classes](Project/Documentation/09_API_and_Classes.md)
+10. [Extending the project](Project/Documentation/10_Extending_the_Project.md)
+11. [Known limitations](Project/Documentation/11_Known_Limitations.md)
 
-The same chapters are compiled into [`Boid_Pedestrian_Simulation_Documentation.pdf`](Thesis/Documentation/Boid_Pedestrian_Simulation_Documentation.pdf) by `build_pdf.py`, which needs Pandoc, the Mermaid CLI (`mmdc`) and Google Chrome.
+The same chapters are compiled into [`Boid_Pedestrian_Simulation_Documentation.pdf`](Project/Documentation/Boid_Pedestrian_Simulation_Documentation.pdf) by `build_pdf.py`, which needs Pandoc, the Mermaid CLI (`mmdc`) and Google Chrome.
 
 ## License
 

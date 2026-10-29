@@ -2,7 +2,7 @@
 
 Starts from the configurations of the earlier runs (base/cfg2 and base/exp), replaces the mode with Accurate and
 keeps every other setting. Run length (fastSimulation/runDurationSimMinutes) and seed are kept or set here.
-Generated schedules go to Thesis/Saved/Schedules, which the game reads before the project copies.
+Generated schedules go to Project/Saved/Schedules, which the game reads before the project copies.
 The Visual-mode scaling configurations (base/visual/vis_*.xml) are copied into cfg/ unchanged.
 """
 import os
@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OLD = os.path.join(HERE, "base", "cfg2")
 EXP = os.path.join(HERE, "base", "exp")
 OUT = os.path.join(HERE, "cfg")
-PROJ = os.path.normpath(os.path.join(HERE, "..", ".."))  # the Unreal project folder (Thesis/)
+PROJ = os.path.normpath(os.path.join(HERE, "..", ".."))  # the Unreal project folder (Project/)
 SCHED_OUT = os.path.join(PROJ, "Saved", "Schedules")
 os.makedirs(OUT, exist_ok=True)
 os.makedirs(SCHED_OUT, exist_ok=True)

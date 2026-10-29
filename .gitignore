@@ -32,38 +32,38 @@
 *.ipa
 
 # Unreal Engine generated folders
-Thesis/Binaries/
-Thesis/Build/
-Thesis/DerivedDataCache/
-Thesis/Intermediate/
-Thesis/Saved/
-Thesis/Platforms/
-Thesis/Plugins/**/Binaries/
-Thesis/Plugins/**/Intermediate/
+Project/Binaries/
+Project/Build/
+Project/DerivedDataCache/
+Project/Intermediate/
+Project/Saved/
+Project/Platforms/
+Project/Plugins/**/Binaries/
+Project/Plugins/**/Intermediate/
 
 # Editor-generated config, except the simulation settings
-Thesis/Config/*
-!Thesis/Config/SimulationConfig.xml
+Project/Config/*
+!Project/Config/SimulationConfig.xml
 
 # Built lighting data for maps
 *_BuiltData.uasset
 
 # Third-party content: licensed separately, see README
-Thesis/Content/AssetsvilleTown/
-Thesis/Content/Characters/
-Thesis/Content/M5VFXVOL2/
-Thesis/Content/MetaHumans/
-Thesis/Content/NPCManager/
-Thesis/Content/SocialNPCAnimations/
-Thesis/Content/StarterContent/
-Thesis/Content/ThirdPerson/
-Thesis/Content/LevelPrototyping/
-Thesis/Content/__ExternalActors__/
-Thesis/Content/__ExternalObjects__/
+Project/Content/AssetsvilleTown/
+Project/Content/Characters/
+Project/Content/M5VFXVOL2/
+Project/Content/MetaHumans/
+Project/Content/NPCManager/
+Project/Content/SocialNPCAnimations/
+Project/Content/StarterContent/
+Project/Content/ThirdPerson/
+Project/Content/LevelPrototyping/
+Project/Content/__ExternalActors__/
+Project/Content/__ExternalObjects__/
 
 # Documentation build intermediates
-Thesis/Documentation/_pdf_assets/report.html
-Thesis/Documentation/_pdf_assets/report.md
+Project/Documentation/_pdf_assets/report.html
+Project/Documentation/_pdf_assets/report.md
 
 # Logs and OS files
 *.log
