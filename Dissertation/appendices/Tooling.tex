@@ -1,11 +1,11 @@
 \chapter{Tooling}\label{app:tooling}
 \begingroup\raggedright
 
-\section{Building and running}\label{app:tooling-build}\label{app:tooling-runs}
+\section{Building and Running}\label{app:tooling-build}\label{app:tooling-runs}
 
 The project is built with Unreal Engine 5.4 and MSVC 14.38 (\texttt{Build.bat ThesisEditor Win64 Development -CompilerVersion=14.38.33130}), because the installed 14.44 toolset cannot compile the engine headers. Mode, clock start, seed, and scenario options are not command-line flags, so \texttt{run\_scenario.ps1} copies a per-run configuration (\cref{tab:experiment-settings}) over \texttt{Saved/Config/SimulationConfig.xml}, starts \texttt{UnrealEditor.exe} with the flags of \cref{tab:flags}, waits for an output file or a time-out, and kills the process. Only the scaling runs were rendered, in Visual mode and real time, while all others used Accurate mode, \texttt{-nullrhi} and the fixed time step. The public repository \citep{armada2026repository} holds the framework on its main branch and, on a separate test branch, the recorder, stress test and screenshot tools, the batch scripts and the run configurations, which are kept apart so that they do not add to the framework itself. Every result of \cref{chap:applications} comes from that test branch, which adds these tools and the adjustments listed in \cref{sub:app-settings} to the main branch, while the recorded run files are not public.
 
-\section{Scaling schedules, analysis and documents}\label{app:tooling-scaling}\label{app:tooling-latex}
+\section{Scaling Schedules, Analysis and Documents}\label{app:tooling-scaling}\label{app:tooling-latex}
 
 \texttt{make\_configs.py} also writes the scaling schedules, in which \texttt{Agent\_k} receives the rules of \texttt{Agent\_(k mod 50)} for $N$ from 50 to 1600, and the documents are compiled with Tectonic. The numbers of \cref{chap:applications,app:results} come from the scripts in \texttt{analysis/}: \texttt{analyze.py}, \texttt{extra\_stats.py}, \texttt{capacity\_stats.py}, \texttt{start\_delay.py}, \texttt{rush\_kinds.py}, \texttt{review\_experiments.py}, \texttt{step\_check.py} and \texttt{figure\_data.py}.
 
@@ -36,7 +36,7 @@ thesis.ValidationDebugPanel 1 & Console variable that shows the validation debug
 \label{tab:flags}
 \end{table}
 
-\section{Repeating the runs}\label{app:tooling-repeat}
+\section{Repeating the Runs}\label{app:tooling-repeat}
 
 The test branch of the public repository \citep{armada2026repository} contains everything that the runs need, in \texttt{Project/QA/runner/}. \texttt{make\_configs.py} writes every run configuration from the base configurations in \texttt{base/}, \texttt{full\_batch.ps1} runs the behavioral phases in Accurate mode with the fixed time step, and \texttt{full\_batch\_vis.ps1} runs the rendered scaling phases in Visual mode, while the paths to the engine and the project at the top of \texttt{run\_scenario.ps1} and \texttt{lib.ps1} must be set for the local machine. A batch skips every run whose recorder folder already exists, so it can be stopped and resumed, and a file named \texttt{PAUSE} next to the scripts pauses it between runs. The full batch of 408 runs took about eight hours on the computer of \cref{sub:app-settings}, and the analysis scripts of \cref{app:tooling-scaling} then rebuild every table and plot of \cref{chap:applications,app:results} from the recorded files.
 
