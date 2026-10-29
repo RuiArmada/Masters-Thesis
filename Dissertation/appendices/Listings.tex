@@ -9,7 +9,7 @@ Below are the configuration file and the schedule and C++ excerpts referred to i
 
 \section{The development configuration file}\label{app:listings-config}
 
-\Cref{lst:config} is the complete \texttt{SimulationConfig.xml} used during development, read from \texttt{Thesis/Saved/Config/}, and options it leaves out keep their C++ defaults, and \cref{sec:config-file} discusses its values. For legibility, the \texttt{leadership} section is shown before \texttt{infrastructurePlanning}, although in the file it follows it, and the loader does not depend on section order. With \texttt{autoSelectFromMap} true, Mall A and Mall B choose their own schedule and capacity, so \texttt{scheduleFile} and \texttt{serviceStationCapacity} are only fallbacks, and \texttt{runDurationSimMinutes} counts simulated minutes, although the removed comment calls them wall-clock minutes.
+\Cref{lst:config} is the complete \texttt{SimulationConfig.xml} used during development, read from \texttt{Project/Saved/Config/}, and options it leaves out keep their C++ defaults, and \cref{sec:config-file} discusses its values. For legibility, the \texttt{leadership} section is shown before \texttt{infrastructurePlanning}, although in the file it follows it, and the loader does not depend on section order. With \texttt{autoSelectFromMap} true, Mall A and Mall B choose their own schedule and capacity, so \texttt{scheduleFile} and \texttt{serviceStationCapacity} are only fallbacks, and \texttt{runDurationSimMinutes} counts simulated minutes, although the removed comment calls them wall-clock minutes.
 
 \begin{figure}[H]
 \noindent\begin{minipage}{\textwidth}
