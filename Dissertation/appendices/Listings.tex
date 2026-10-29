@@ -1,0 +1,185 @@
+\chapter{Listings}\label{app:listings}
+\begingroup\sloppy
+
+\lstdefinestyle{applst}{basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,breaklines=true,breakatwhitespace=true}
+% The two-column configuration file needs the smaller size to keep every line whole.
+\lstdefinestyle{cfglst}{style=applst,basicstyle=\ttfamily\scriptsize,frame=none,breakindent=46.75pt}
+
+Below are the configuration file and the schedule and C++ excerpts referred to in the main text. XML comments and indentation were removed from the configuration file, and two long lines were adjusted to fit two columns, but no value was changed. In the excerpts, comments containing \texttt{...} mark omitted lines.
+
+\section{The development configuration file}\label{app:listings-config}
+
+\Cref{lst:config} is the complete \texttt{SimulationConfig.xml} used during development, read from \texttt{Thesis/Saved/Config/}, and options it leaves out keep their C++ defaults, and \cref{sec:config-file} discusses its values. For legibility, the \texttt{leadership} section is shown before \texttt{infrastructurePlanning}, although in the file it follows it, and the loader does not depend on section order. With \texttt{autoSelectFromMap} true, Mall A and Mall B choose their own schedule and capacity, so \texttt{scheduleFile} and \texttt{serviceStationCapacity} are only fallbacks, and \texttt{runDurationSimMinutes} counts simulated minutes, although the removed comment calls them wall-clock minutes.
+
+\begin{figure}[H]
+\noindent\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.46\textwidth}
+\begin{lstlisting}[language=XML,style=cfglst]
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation>
+ <features>
+  <feature name="enableEvacuation" value="true"/>
+  <feature name="enableLeadership" value="true"/>
+  <feature name="enableCopsAndRobbers" value="true"/>
+  <feature name="enableInfrastructureAnalysis"
+           value="true"/>
+  <feature name="enableDailyUrbanLife" value="true"/>
+  <feature name="enableValidationStats" value="true"/>
+ </features>
+ <dailyUrbanLife>
+  <enableNeeds value="false"/>
+  <needsRateScale value="0.1"/>
+  <startAgentsAtHome value="true"/>
+  <maxScheduleMinuteOffset value="0"/>
+  <walkingSpeedMin value="170"/>
+  <walkingSpeedMax value="230"/>
+  <interactionPauseMin value="2"/>
+  <interactionPauseMax value="5"/>
+  <breakAreaTag value="Plaza"/>
+  <homeReturnOverridesNeeds value="true"/>
+  <minStationsPerWorkArea value="4"/>
+ </dailyUrbanLife>
+ <evacuation>
+  <globalRadius value="999999"/>
+  <distanceWeight value="1.0"/>
+  <congestionWeight value="2.0"/>
+  <reevaluationInterval value="5.0"/>
+  <switchThreshold value="0.35"/>
+  <maxReassignmentAttempts value="3"/>
+  <preferNearestExitInitially value="true"/>
+ </evacuation>
+ <leadership>
+  <defaultFollowDistance value="200"/>
+  <formationUpdateInterval value="0.5"/>
+  <leadershipOverridesSchedule value="true"/>
+ </leadership>
+\end{lstlisting}
+\end{minipage}%
+\begin{minipage}[t]{0.54\textwidth}
+\begin{lstlisting}[language=XML,style=cfglst]
+ <infrastructurePlanning>
+  <autoSelectFromMap value="true"/>
+  <layoutVariant value="MallA"/>
+  <comparisonBaseline value="MallA"/>
+  <scheduleFile value=
+   "Schedules/InfrastructurePlanningSchedule_MallA.xml"/>
+  <samplingIntervalSeconds value="5"/>
+  <runDurationSimMinutes value="15"/>
+  <enableVisualization value="false"/>
+  <reuseDailyUrbanLifeBootstrap value="true"/>
+  <serviceStationCapacity value="1"/>
+  <serviceStationTag value="ServicePoint"/>
+  <autoExportOnEnd value="true"/>
+  <autoExportComparisonOnEnd value="true"/>
+  <comparisonVariant value="MallB"/>
+ </infrastructurePlanning>
+ <copsAndRobbers>
+  <policeDetectionRadius value="4200"/>
+  <robberDetectionRadius value="900"/>
+  <crimeProbability value="0.3"/>
+  <crimeCheckInterval value="5"/>
+  <crimeDuration value="8"/>
+  <captureRadius value="150"/>
+  <pursuitUpdateInterval value="0.4"/>
+  <fleeDistance value="800"/>
+  <chaseRunSpeed value="450"/>
+  <civiliansAvoidRobbers value="true"/>
+  <civilianAvoidRadius value="700"/>
+ </copsAndRobbers>
+ <validationStats>
+  <showOnScreenPanel value="true"/>
+  <sampleIntervalSeconds value="0.5"/>
+  <waitingSpeedThreshold value="20"/>
+  <congestionSpeedThreshold value="80"/>
+ </validationStats>
+</simulation>
+\end{lstlisting}
+\end{minipage}
+\captionof{lstlisting}{The development \texttt{SimulationConfig.xml} (comments removed).}\label{lst:config}
+\end{minipage}
+\end{figure}
+
+\section{Schedule excerpts}\label{app:listings-schedules}
+
+The complete Daily Urban Life agent, the Mall A agent and the evacuation schedule are shown in \cref{chap:contribution,chap:applications}. In \cref{lst:supergroup}, which shows one cohort of the bidirectional corridor, each member gets its own copy of the two rules (written for a midnight start).
+
+\noindent\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=XML,style=applst,caption={Validation cohort (\texttt{Validation/Validation\_Bidirectional.xml}), members 2 to 8 omitted.},label={lst:supergroup}]
+<superGroup id="Bidirectional_Right">
+  <members><agent ref="Agent_0"/> <agent ref="Agent_1"/> <!-- ... -->
+           <agent ref="Agent_9"/></members>
+  <rule time="00:00"><then action="Idle" duration="2"/></rule>
+  <rule time="00:04"><then action="MoveTo" area="Exit_Right"/></rule>
+</superGroup>
+\end{lstlisting}
+\end{minipage}
+
+\section{C++ excerpts}\label{app:listings-code}
+
+In \cref{lst:dispatch}, a due rule is stale-skipped only when the agent is free, and the retry window has passed, and a deferred rule returns false, so the loop tries the next due rule.
+
+\noindent\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++,style=applst,caption={Rule loop of \texttt{ProcessDueSchedulesForCurrentMinute} (\texttt{ScheduleManager.cpp}, abridged).},label={lst:dispatch}]
+for (FScheduleRule& Rule : Rules)
+{
+    // ... skip rules already run today or not yet due ...
+    if (!ScheduleAILayer::IsAgentScheduleBusy(Boid) &&
+        ScheduleAILayer::MinutesElapsedSince(EffectiveMinute, CurrentSimMinute) >
+            ScheduleRetryWindowMinutes)
+    {   // stale skip
+        RecordRuleOutcome(AgentId, Rule, EffectiveMinute, TEXT("stale_skip"));
+        Rule.LastExecutedDay = DayCounter; continue;
+    }
+    // prob roll, deferral checks, dispatch
+    if (TryExecuteDueRule(AgentId, Rule, EffectiveMinute)) break;
+}
+\end{lstlisting}
+\end{minipage}
+
+In \cref{lst:station}, a place is reserved at request time, before the agent walks there, and an agent finding the station full joins a FIFO queue.
+
+\noindent\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++,style=applst,caption={\texttt{AAgentStation::RequestEnter} and \texttt{AdmitAgent} (\texttt{AgentStation.cpp}, abridged).},label={lst:station}]
+bool AAgentStation::RequestEnter(ABoidsAB* Agent)
+{
+    if (!Agent) return false;
+    if (IsAgentActiveOccupant(Agent) || Queue.Contains(Agent)) return true;
+    if (ActiveOccupants.Num() < GetMaxConcurrentOccupants())
+        { AdmitAgent(Agent); return true; }
+    Queue.Add(Agent);                // FIFO queue
+    // ... event broadcast, analytics ...
+    return true;
+}
+void AAgentStation::AdmitAgent(ABoidsAB* Agent)
+{
+    if (!Agent || IsAgentActiveOccupant(Agent)) return;
+    ActiveOccupants.Add(Agent);      // place reserved before arrival
+    AwaitingArrival.Add(Agent);      // cleared by NotifyOccupantReached
+    // ... event broadcast, analytics ...
+}
+\end{lstlisting}
+\end{minipage}
+
+In \cref{lst:blend}, the boids steering is normalized, scaled by the moving steering weight (0.35), reduced to its component perpendicular to the path, and capped at the tangent of the maximum deviation (18 degrees by default).
+
+\noindent\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++,style=applst,caption={\texttt{ABoidsAB::BlendMovement} (\texttt{BoidsAB.cpp}, abridged).},label={lst:blend}]
+// ... Progress: path direction, flattened and normalised; early returns omitted ...
+FVector Lateral = FVector::ZeroVector;  FVector Soft = SteeringForce;  Soft.Z = 0.f;
+if (!Soft.IsNearlyZero())
+{
+    Soft = Soft.GetSafeNormal() * FlockController->GetMovingSteeringWeight();
+    // lateral part only
+    Lateral = Soft - Progress * FVector::DotProduct(Soft, Progress);
+    const float MaxLateral = FMath::Tan(FMath::DegreesToRadians(
+        FMath::Clamp(FlockController->GetMaxSteerDeviationDegrees(), 1.f, 35.f)));
+    const float LateralSize = Lateral.Size();
+    if (LateralSize > MaxLateral && LateralSize > KINDA_SMALL_NUMBER)
+        Lateral *= MaxLateral / LateralSize;
+}
+FVector Blended = Progress + Lateral;  Blended.Z = 0.f;
+OutDirection = Blended.IsNearlyZero() ? Progress : Blended.GetSafeNormal();
+\end{lstlisting}
+\end{minipage}
+
+\par\endgroup

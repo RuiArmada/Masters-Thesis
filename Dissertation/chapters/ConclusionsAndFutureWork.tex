@@ -1,0 +1,69 @@
+\chapter{Conclusions and future work}\label{chap:conclusions}
+
+In \cref{sec:conclusions}, this chapter answers the research question of \cref{sub:intro-rq} and assesses objectives O1 to O5 and the functional requirements R1 to R7, before \cref{sec:future-work} sets out the future work.
+
+\section{Conclusions}\label{sec:conclusions}
+
+The main result of this work is what the recorded runs show about a place. Once walking took its real time, waiting for shared stations became the largest part of the gap between authored and realized times in the shopping centers, with queueing at 76\% of the start delay of station rules in Mall A as authored and 92\% in a lunch rush with one counter place, while in Daily Urban Life long walks to crowded single target points took 44\%. Relief at one stage of a pipeline also moved the queue to the next one, as over 30 runs per setting extra places at the food tables lowered the median wait per station visit from 0.84 to 0.51 simulated minutes, extra counter places only moved the queue to the tables, and the lunch rush showed the same shift with waits of several minutes. These directions held at both frame steps, and every result can be traced back to the recorded rules, station events and walks, which is also how the few runs that differ from the rest were explained (\cref{sub:app-edge-cases}).
+
+Our answer to the research question is therefore a framework in which schedules issue timed requests, a movement layer combines navigation paths with bounded boids steering, capacity-limited stations decide when an activity can take place and the environment constrains both, while a recorder explains every delay. Timing needed explicit semantics rather than more rule types, as an authored time is a request that is deferred while the person is busy, consumed on dispatch and dropped when far too late. Reuse is what makes these analyses cheap, as one implementation of a person ran a 50-person daily routine with 304 rules, two shopping center layouts with 53 and 59 rules, an evacuation started by one rule and seven directed-flow corridor maps written as cohort rules. Six actions were enough for all of them, the only new action that a scenario needed was \texttt{Interact}, added for the button of Mall B, and the implementation animates 50 people in the daily routine and 100 in the evacuation at a mean above 30 frames per second on one desktop computer, with slower frames in the tail of the evacuation runs.
+
+\subsection{Objectives and requirements}\label{sub:conclusions-objectives}\label{sub:conclusions-requirements}
+
+\textbf{O1} (authoring language) was achieved: \gls{xml} schedules express per-person and cohort rules and multi-stage station use, with defined deferral, consumption and a 45-minute retry window, and conditions and probabilities are available for schedules that need them.
+
+\textbf{O2} (movement layer) was achieved: paths prefer sidewalks, boids steering turns the person at most 18\textdegree{} from their path, and wall probes remove pushes into walls. In the test maps, the blend spread the cohorts in the one-way corridor and in the bottleneck, where more people reached their end point and did so sooner, while overlaps stayed rare.
+
+\textbf{O3} (shared resources) was achieved, and its result held in direction at both frame steps: extra places help at the stage of a pipeline that is short of capacity, as the food tables ($p<0.001$) and the lunch rush above show, while desk places made no difference because no desk formed a queue.
+
+\textbf{O4} (reuse) was achieved for every scenario family: all of them run on one implementation of a person, Mall B added a second food court and a button-operated entrance with only a new \texttt{Interact} action, a button and a gate, and the remaining scenario-specific code is small and identifiable, in the scenario managers, a few branches of the person and a few map-name settings.
+
+\textbf{O5} (measurement) was achieved: the run recorder and the stress test, on a test branch of the public repository, and the analysis scripts of \cref{app:tooling} produce every result in \cref{chap:applications} from recorded files, and with a fixed time step a seed reproduced the Mall A runs exactly.
+
+\Cref{tab:requirements-assessment} assesses the functional requirements of \cref{tab:requirements}, which the objectives above serve as mapped in \cref{tab:requirements-map}. A requirement counts as met when the evidence shows what its text asks for, and where a status names a scope, such as the mechanism, the tested scenarios or the authored populations, that scope is the one that the requirement itself sets, so the requirement is met in full within it.
+
+\subsection{Limitations}\label{sub:conclusions-limitations}
+
+This work deliberately stops short of calibration, so its numbers describe the model rather than real buildings. The results come from Accurate mode at one simulated second per frame, and their sizes, though not their directions, depend on that step. Three time-outs still count real seconds, which lengthens some Daily Urban Life walks and slows the evacuation exits to one person per 45 simulated seconds, and walking speeds and service durations are authored rather than calibrated. A seed reproduces the Mall A runs exactly but not the corridor or Daily Urban Life runs, the blend was measured in three of the seven corridor maps, and the malls hold ten people because copied people jam at single-point targets. A few edge cases shape some runs, namely reservations without a time-out and queues bound to the first station in the station model, and stalled exit queues and a blocked safe zone in the evacuation (\cref{sub:app-edge-cases}). Performance was measured on one machine with MetaHuman characters, which take a large share of the frame time. Conditions and probabilities are implemented but unused by the shipped schedules, and no user has yet written a schedule in a study.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|L{0.2\textwidth}|L{0.13\textwidth}|L{0.59\textwidth}|}
+\hline
+\rowcolor{headgray}\textbf{Requirement} & \textbf{Status} & \textbf{Evidence} \\
+\hline
+R1 Purpose as authored data & Met for the mechanism & Six actions in \gls{xml} schedules describe every scenario without recompiling, and a study with non-programmers is future work. \\ \hline
+R2 Timing under contention & Met & Deferral, consumption and a retry window, no authored minute skipped, and in Accurate mode walking and the clock advance together, while three time-outs still count real seconds (\cref{sub:conclusions-limitations}). \\ \hline
+R3 Shared capacity-limited resources & Met & Reservation, queue, timed service, release and multi-stage activities work, and extra places shorten waits at the bottleneck stage of a pipeline. \\ \hline
+R4 Reuse across scenarios & Met for the tested scenarios & Every scenario family and seven corridor maps run on one implementation of a person, with scenario-specific code kept to the scenario managers and a few map-name settings. \\ \hline
+R5 Environmental constraints & Met & Sidewalks, walls, gates, exits and safe zones shape outcomes without appearing in rules. \\ \hline
+R6 Observability and measurement & Met & Recorder files and the analysis scripts reproduce every result, the recorder and the batch scripts are public, and with a fixed time step a seed reproduced the Mall A runs exactly. \\ \hline
+R7 Interactive performance & Met for the authored populations & A mean above 30 frames per second with the 50 people of Daily Urban Life and up to 100 in the evacuation, the fixed-step runs are much faster than real time, and the stress test measures the cost as the population grows. \\ \hline
+\end{tabular}
+\caption[Assessment of the requirements]{Assessment of the requirements of \cref{chap:problem}.}
+\label{tab:requirements-assessment}
+\end{table}
+
+\section{Prospect for future work}\label{sec:future-work}
+
+\subsection{Other populations and places}\label{sub:future-generality}
+
+The separation of schedules, stations and movement is not tied to pedestrians in buildings, so the same analysis of waiting and capacity could be applied to other populations with little new code. Boids began as a model of animals \citep{reynolds1987flocks}, and a herd or a flock with a daily cycle maps onto the framework, with feeding grounds, waterholes and resting sites as capacity-limited stations. The existing needs component, which already models hunger and energy, would decide when the animals go to them. Animals react to predators and to each other more than to a timetable, so they would need perception-driven layers in the core code, but the schedule, station and recording layers would carry over. With little or no new code, the framework could also describe hospitals with consultation rooms and waiting areas, airports with check-in desks and boarding gates, theme parks with ride queues, and the daily routines of non-player characters in games, where authored schedules are already common \citep{bethesda2011skyrim,concernedape2016stardew}.
+
+\subsection{Performance}\label{sub:future-performance}
+
+Updating the people on the game thread limits interactive use, and a uniform grid for neighbor search \citep{reynolds2006big,ericson2004realtime}, asynchronous path queries and level of detail for distant people would reduce its cost. A larger step would move people to \gls{ue}'s data-oriented Mass framework \citep{epicgames2026massentity,epicgames2026massgameplay} or steering to the \gls{gpu} \citep{owens2007survey,joselli2009neighborhood}, while simpler characters would lower the MetaHumans' share and avoid the hair-strand crash.
+
+\subsection{Shared resources and timing}\label{sub:future-resources}
+
+The station model would gain from reservations that expire when their owner does not arrive and from one queue per area and station type instead of a queue bound to the first station. Arrival areas instead of single target points, exit queues that keep flowing, a safe zone that counts every person who enters it and time-outs expressed in simulated time would also remove the edge cases of \cref{sub:conclusions-limitations}.
+
+\subsection{Calibration and validation}\label{sub:future-studies}
+
+Calibration should start with walking speeds \citep{weidmann1993transporttechnik}, the directed-flow corridors against recorded fundamental diagrams \citep{seyfried2005fundamental,zhang2011transitions} and the evacuation against the RiMEA test cases \citep{rimea2025guideline} and ISO 20414 \citep{iso2020evacuation}. Controlled studies could then vary one factor at a time, such as the number of tables, with larger populations and demand generated from distributions \citep{ricks2020generation}.
+
+\subsection{Authoring tools}\label{sub:future-tools}
+
+An editor tool that checks tags, station types and times against the open map and shows realized times on each person's timeline would show users the gap while they write, and a study with non-programmers would test the authoring claim.

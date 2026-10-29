@@ -1,0 +1,191 @@
+% contribution_part2.tex
+% Second half of the architecture section: movement, stations, environment, configuration, instrumentation.
+\providecommand{\compacttable}{\footnotesize\renewcommand{\baselinestretch}{1}\selectfont\renewcommand{\arraystretch}{1.15}}
+\newcolumntype{Q}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
+% Long code identifiers cannot be hyphenated; allow looser spacing in this part only.
+\begingroup\sloppy\setlength{\emergencystretch}{3em}
+
+%======================================================================
+\subsection{Movement: Capsules, Probes and the Hybrid Blend}
+\label{sec:collision-system}\label{sec:boid-rules}
+
+Each person's capsule is moved by the engine's \texttt{CharacterMovementComponent}, which applies gravity and slides it along blocking geometry, and the boids rules see the people who overlap a 300\,cm sphere around the person. There is no grid and no cap on the number of neighbors, so the cost per person grows with local density \citep{reynolds2006big}. None of this is collision avoidance in the pedestrian sense, where each person would choose a velocity that keeps them clear of their neighbors over a time horizon \citep{vandenberg2008reciprocal,vandenberg2011reciprocal,karamouzas2014universal}, so overlaps are possible and capsules deal with contact afterwards. A forward sonar ray of 300\,cm turns the person toward the first free direction of 100 precomputed ones when the ray hits an obstacle \citep{reynolds1999steering}. In Visual and Accurate modes (\cref{sec:clock-modes}), two side rays of 95\,cm and a forward ray of 110\,cm also remove any component of movement toward a wall and slide the person along walls they would hit. A person pushed more than 50\,cm off the navigation mesh is projected back onto it at most once per second. The fallback handler retries failed path queries, recomputes the path of a person who covers less than 15\,cm in 6\,s, and lets a fleeing person choose another exit when more than three paths to their queue slot have failed.
+
+In the hybrid blend, the path decides the direction of travel and the flock can only turn it sideways by a bounded angle. The progress direction $\hat{\mathbf{p}}$ points to the point 140\,cm ahead of the person's closest point on their path segment, never backwards along it. The flock force is flattened, normalized and scaled by $w_m=0.35$, its component along $\hat{\mathbf{p}}$ is discarded, the lateral remainder $\mathbf{l}$ is capped at $\tan 18^\circ\approx0.325$, and the new heading is the unit vector
+\begin{equation}
+\mathbf{h}=\frac{\hat{\mathbf{p}}+\mathbf{l}}{\lVert\hat{\mathbf{p}}+\mathbf{l}\rVert}
+\label{eq:blend-heading}
+\end{equation}
+shown in \cref{fig:blend-geometry}. The forward component is always the full $\hat{\mathbf{p}}$, so the flock can never stop or reverse progress, and the wall probes then refine the direction within the same cone. The blend is off in Fast mode, while a person is admitted to or queued for a station, so that a worker going to a reserved desk reaches it, and in every evacuation state, and in those cases the path alone decides the direction.
+
+The priority selector decides each frame which layer controls the person (\cref{tab:priority-layers}). Higher layers move the person through the layer's own overrides and defer the person's due rules until the layer releases them, and in our tests crime and leadership were off and needs were frozen, so only the emergency, schedule and idle layers were active. The outcome is two regimes: \emph{free flocking}, where the boids rules alone set the velocity, and \emph{directed travel}, where a rule, need, leader or evacuation provides a target, the path sets the direction and the flock only nudges it. We preferred this to the usual weighted sum of seek and flock forces \citep{reynolds1999steering}, in which a dense group can stall a person or carry them past their turn and the right weights depend on density. The price is that the flock has little influence during travel, which is when crowding occurs.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Latex,font=\footnotesize,scale=1.3,
+  lab/.style={fill=white,inner sep=1.5pt}]
+  \fill[cBlue!10] (0,0) -- (18:5.3) arc (18:-18:5.3) -- cycle;
+  \draw[cBlue!60,dashed] (0,0) -- (18:5.3);
+  \draw[cBlue!60,dashed] (0,0) -- (-18:5.3);
+  \draw[black!50] (2.2,0) arc (0:18:2.2);
+  \draw[black!50] (2.2,0) arc (0:-18:2.2);
+  \node[black!60] at (9:2.62) {$+18^\circ$};
+  \node[black!60] at (-9:2.62) {$-18^\circ$};
+  \draw[->,very thick,cBlue] (0,0) -- (5,0) node[below=3pt]{$\hat{\mathbf{p}}$};
+  \draw[->,dotted,thick,cOrange] (0,0) -- (80:3.0) node[above,text=black]{flock force direction};
+  \draw[->,thick,cOrange!80!black] (0,0) -- (80:1.75) node[left=2pt]{$w_m\hat{\mathbf{s}}$};
+  \draw[black!45] (0.304,0) -- (0.304,1.723);
+  \draw[->,dashed,cVerm!70] (5,0) -- (5,1.723) node[lab,above=2pt,text=black]{lateral part $w_m\sin 80^\circ\approx0.345$};
+  \draw[->,very thick,cVerm] (5,0) -- (5,1.62);
+  \node[lab,right=4pt] at (5,0.8) {capped at 0.325};
+  \draw[->,ultra thick] (0,0) -- (18:5.0) node[pos=0.62,above=2pt,sloped]{new heading};
+  \filldraw (0,0) circle (1.5pt) node[below left]{person};
+\end{tikzpicture}
+\caption[Geometry of the hybrid blend]{Geometry of the hybrid blend, where the heading stays inside the shaded cone around the path. The flock force is drawn at 80\textdegree{} to the path as one example, so its lateral part is $w_m\sin 80^\circ\approx0.345$ and the cap at $\tan 18^\circ\approx0.325$ shortens it.}
+\label{fig:blend-geometry}
+\end{figure}
+
+\begin{table}[H]
+\centering
+{\compacttable
+\begin{tabularx}{\textwidth}{|l|Q|Q|}
+\hline
+\rowcolor{headgray}\textbf{Layer} & \textbf{Applies when} & \textbf{Movement and effect on the schedule} \\
+\hline
+PanicEmergency & fleeing, exiting, awaiting reaction, moving to a safe zone, evacuated or casualty & evacuation movement, all rules deferred \\ \hline
+CriticalNeeds & hunger $\ge0.65$ or energy $\le0.35$ & to the nearest food point or home, leaving any station, rules deferred \\ \hline
+CrimeResponse & crime feature on and the role wants to pursue, flee or avoid & run to or from the other party, rules deferred \\ \hline
+Leadership & leadership feature on and actively following & walk behind the leader, rules deferred if configured \\ \hline
+ScheduledTasks & moving or holding a target station & schedule action with the blend \\ \hline
+IdleFlock & none of the above & free flocking, or a slow mill near home in Daily Urban Life \\ \hline
+\end{tabularx}}
+\caption[Priority layers of the person]{Priority layers of the person, highest first.}
+\label{tab:priority-layers}
+\end{table}
+
+%======================================================================
+\subsection{Stations, Areas, Super Stations and Pipelines}
+\label{sec:stations}
+
+A rule that sends a person to the office cannot know whether a desk will be free, and stations keep track of that. They build on smart objects, which hold the logic of their use \citep{kallmann1999modeling,forbus2001notes}, and on Unreal Engine's Smart Objects, whose slots people claim and release \citep{epicgames2026smartobjects}, and they add several places, a first-come, first-served queue and a timed service authored in the schedule. In queueing terms, a station is a multi-server FIFO queue \citep{kendall1953stochastic,shortle2018fundamentals} with two differences from the standard model, as places are booked before the customer arrives and the queue takes up no space. An \texttt{AAgentStation} is one resource, such as a desk, counter, table or bed, with its places, its admitted occupants, including those still walking, and a queue. An \texttt{AAgentArea} groups stations under an actor tag such as \texttt{Work0} in an ordered array, and an \texttt{AAgentSuperStation} is an area of a few interchangeable stations, such as the counters and tables of a food court. A pipeline is the person's list of stages with the index of the current one, and \cref{fig:station-lifecycle} shows one stage.
+
+A stage is resolved to a station only when it starts, so a diner does not hold a table while still queueing at the counter (\cref{lst:malla-pipeline}). \texttt{RequestEnter} admits the person if a place is free and otherwise queues them. Reserving at dispatch prevents two people from walking to the last desk and finding the conflict on arrival, although the desk then sits idle while its user walks and the first person to ask wins even if another is nearer. A queued person becomes idle where they stand and does not walk to the station or line up. An admitted person walks to the station and arrives within 180\,cm horizontally and 220\,cm vertically of it, then snaps or interpolates to the station's interaction point, so that a diner sits at the table rather than beside it, and their service timer and animation start. The service lasts the stage's \texttt{duration} or, if none is given, the station's default of 5 simulated minutes, converted to real seconds for the run mode (\cref{sec:clock-modes}). When it expires, the place is released, the next stage is resolved from where the person stands, and the station admits the head of its queue on its next tick. \texttt{LeaveStation} frees a place or a queue entry when a \texttt{Break}, \texttt{Pause}, home commute, evacuation, need or queue time-out interrupts the person, and while a person is admitted, queued or in a pipeline, their other rules are deferred, which links station waiting to schedule lateness.
+
+A stage resolves to the first open area with the stage's tag and, within it, to the first station in array order whose type matches and that has a free place, or otherwise to the first matching station. A misspelled \texttt{stationType} therefore silently falls back to any station in the area. This policy had two effects in the malls, as a queued person stays bound to the station chosen at that moment and does not move to an equivalent one that frees earlier. When every station is busy, all new arrivals also join the queue of the \emph{first} matching station, so the array order becomes a modeling decision. A queued person gives up after 50 engine seconds and goes home, except in the infrastructure scenario or when \texttt{enableInfrastructureAnalysis} is on, where they wait indefinitely. There is no time-out between admission and arrival, so a place stays reserved until its owner arrives or leaves.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\footnotesize,>=Latex,
+  every node/.append style={execute at begin node={\hyphenpenalty=10000\relax}},
+  st/.style={draw,rounded corners=3pt,align=center,text width=4.0cm,minimum height=0.9cm,inner sep=3pt,fill=white},
+  side/.style={draw,rounded corners=3pt,align=center,text width=3.7cm,minimum height=0.9cm,inner sep=3pt,fill=black!5},
+  lab/.style={align=center,fill=white,inner sep=1.5pt}]
+\node[st] (req) at (0,0) {\textbf{Requested}: step resolved to one station; \texttt{RequestEnter}};
+\node[st,fill=cBlue!15,draw=cBlue!80!black] (adm) at (0,-3.9) {\textbf{Admitted}: place reserved; person walks to the station};
+\node[st,fill=cBlue!15,draw=cBlue!80!black] (arr) at (0,-6.0) {\textbf{Arrived}};
+\node[st,fill=cOrange!15,draw=cOrange!80!black] (pos) at (0,-8.1) {\textbf{Positioning}: snap or interpolate to the interaction point};
+\node[st,fill=cGreen!25,draw=cGreen!80!black] (srv) at (0,-9.9) {\textbf{Serving}: timer of \texttt{duration} simulated minutes};
+\node[st,fill=cGreen!10,draw=cGreen!80!black] (rel) at (0,-11.8) {\textbf{Completed}: place released};
+\node[side,fill=cVerm!15,draw=cVerm!80!black] (que) at (5.6,-2.0) {\textbf{Queued}: logical FIFO entry; person waits where they stood};
+\node[side] (left) at (5.6,-7.2) {\textbf{Left early} (\texttt{LeaveStation}): place or entry freed; rest of pipeline cancelled};
+\node[side,text width=2.9cm,fill=cPurple!15,draw=cPurple!80!black] (next) at (-5.2,-11.8) {\textbf{Next step} resolved now, or pipeline ends};
+\node[align=left,text width=2.9cm] (note) at (-5.2,-3.9) {No time-out before arrival: the place stays reserved until its owner arrives or leaves.};
+\draw[->,thick] (req) -- node[lab,left=2pt]{free place} (adm);
+\draw[->,thick] (req.east) -| node[lab,pos=0.25,above=1pt]{all places taken} (que.north);
+\draw[->,thick] (que.west) -| node[lab,pos=0.25,above=2pt]{head admitted\\one tick after\\a release} ($(adm.north)+(1.3,0)$);
+\draw[->,thick] (adm) -- node[lab,right=2pt]{XY $\le$ 180\,cm,\\$|Z|\le$ 220\,cm} (arr);
+\draw[->,thick] (arr) -- node[lab,right=2pt]{position\\mode set} (pos);
+\draw[->,thick] (arr.west) -- ++(-0.7,0) |- node[lab,pos=0.25,left=2pt]{mode None} (srv.west);
+\draw[->,thick] (pos) -- (srv);
+\draw[->,thick] (srv) -- node[lab,right=2pt]{timer expires} (rel);
+\draw[->,thick] (rel) -- (next);
+\draw[->,dashed] (rel.east) -- node[lab,above=1pt]{\texttt{TryFillOpenSlots} (deferred fill)} (8.3,-11.8) |- (que.east);
+\draw[->,dashed] (que.south) -- node[lab,right=2pt]{timeout, flee,\\home commute} (left.north);
+\draw[->,dashed] (adm.east) -- ++(0.9,0) |- node[lab,pos=0.25,right=2pt]{Break, Pause,\\flee, need} (left.west);
+\draw[->,dashed] (srv.east) -| node[lab,pos=0.25,above=1pt]{interruption} (left.south);
+\draw[dotted] (note.east) -- (adm.west);
+\end{tikzpicture}
+\caption[Lifecycle of one station step]{Lifecycle of one station step, where dashed arrows are interruptions.}
+\label{fig:station-lifecycle}
+\end{figure}
+
+%======================================================================
+\subsection{Environment and Scenario Managers}
+\label{sec:environment}\label{sec:scenario-managers}
+
+Paths come from the engine's Recast navigation mesh and Detour's A* search \citep{snook2000simplified,mononen2009recast,hart1968formal,epicgames2026navigation}, queried on the game thread with one filter, \texttt{UNavFilter\_SidewalkOnly}, which gives the default area a very high travel cost and sidewalks, painted with navigation modifier volumes, a cost of 1. Roads are therefore penalized rather than forbidden, and walls need no special actor, because they block capsules, cut the mesh and are seen by the probes. Mall B's second entrance has a gate that blocks movement and marks its doorway as \mbox{non-navigable} while closed, and when a person presses the gate's button, the gate opens and the mesh is rebuilt locally, so only later path queries use the doorway. An \texttt{AExitPoint} lays out queue slots 120\,cm apart behind the exit and grants each slot only if it is on the sidewalk mesh and reachable. It serves one person at a time, as the front person must reach their slot and the exit then waits 1.5 real seconds before releasing them. People score exits by distance and queue length, re-evaluate them periodically and may switch a bounded number of times. Once released, a person walks to the nearest safe zone and counts as safe within 200\,cm of it, and since all people go to the same safe zone, early arrivals at its rim can block later ones. When the countdown of the emergency manager ends, every person not yet safe is marked as a casualty.
+
+Each family of maps has a manager actor that runs once the spawners have created the people. The \texttt{ADailyUrbanLifeManager} gives each \texttt{Agent\_N} a home and a work tag from its number and one of the shared food points, draws its schedule offset and a walking speed between 170 and 230\,cm/s, and scales its needs rates by a configured factor. The \texttt{AInfrastructurePlanningManager} picks the mall layout and schedule, sets the capacity of every station that carries a configured actor tag, places people at the entrances and ends the run after a set number of simulated minutes. Some features are switched on or off from the map name, which lets one configuration file serve every map during development, at the cost that renaming a map changes its behavior.
+
+%======================================================================
+\subsection{Simulation Clock and Run Modes}\label{sec:clock-modes}
+
+\texttt{USimulationClock} holds the simulated seconds since midnight of day zero, a speed in simulated seconds per engine second and a start time. The start time is set in \texttt{<simulationClock>} with a default of 08:00, except on the directed-flow test maps, whose schedules count from midnight and whose clock therefore always starts at 00:00. Schedule times are written as \texttt{HH:MM}, and the default speed of 60 makes one real second one simulated minute, the pace for which every shipped schedule was written. Rules are tested against a \emph{schedule cursor}, which the manager advances one minute at a time while it is behind the clock, up to 120 minutes per frame so that a long hitch does not freeze the game. No authored minute is therefore ever skipped, which could happen in the earlier version that evaluated one minute per frame.
+
+\texttt{<simulationMode mode="Visual|Fast|AccurateTime"/>} selects the run mode, where Visual mode, the default, is what the viewer sees, and Fast mode runs schedules at a higher clock speed for quick checks, although no result of \cref{chap:applications} uses it. In Visual mode, walking is not scaled to the clock, so a person moving at about 2\,m per real second takes about 50 real seconds for a 100\,m walk, which the clock counts as 50 simulated minutes. Relative to the time spent at a station, every walk therefore lasts 60 times longer than the people's own speed implies.
+
+Accurate mode removes this distortion and is the mode of every result in \cref{chap:applications}. It locks walking to the clock with one scale, \texttt{accurateTime.simulationSpeed} (30 by default), so the clock advances by the real frame time multiplied by 30 and every walking and fleeing speed is multiplied by 30. Acceleration is raised as well, so that a person reaches their speed within one movement substep. At 30~fps, a frame is one simulated second, and at any frame rate the clock and movement never drift, so a 100\,m walk at 2\,m/s takes 50 simulated seconds. Engine timers still count real seconds, so \texttt{ScaleAuthoredDurationToRealSeconds} converts every authored time written for the Visual pace into the authored value $\times 60/30$ real seconds, which the clock counts as the same number of simulated minutes as in Visual mode. This covers station and \texttt{Idle} durations, interaction pauses, evacuation reaction delays and the evacuation countdown, so a 10-minute service lasts 600 simulated seconds and the 120-second countdown lasts 120 simulated minutes. Three constants do not go through this conversion and continue to count real seconds: the GoTo time-out (180 real seconds, which the clock counts as 90 simulated minutes), the queue time-out (50 real seconds, or 25 simulated minutes) and the exit processing (1.5 real seconds, or 45 simulated seconds).
+
+A step of one simulated second moves a person about 2\,m, and the test branch used for the evaluation adds four adjustments for such steps (\cref{sub:app-settings}). A run in Accurate mode ends at its duration cap, or earlier when no person is busy and every rule has been consumed, and since people cross a room in a few frames, Visual mode remains the mode for watching and debugging. The schedule manager applies the seed at \texttt{BeginPlay}, and all randomness shares the engine's global stream. With variable frame times, a seed therefore does not make a run reproducible, while with a fixed time step it reproduced the Mall A runs exactly but not the corridor or Daily Urban Life runs (\cref{sub:res-same-seed}).
+
+%======================================================================
+\subsection{Configuration and Instrumentation}
+\label{sec:config-file}\label{sec:instrumentation}
+
+Settings that belong in neither the map nor the schedule live in \texttt{SimulationConfig.xml}, so that a reader can see in one file which settings a run used, in keeping with the \acrshort{odd} protocol \citep{grimm2020odd}. The registry resets to its code defaults, loads the file, in which each section only overwrites the options it contains, and applies the map-name gates, at world creation and again at every Play. Parsing is lenient, as tags are matched case-insensitively, malformed numbers become 0 and unknown tags are ignored, so a misspelled option silently keeps its default. The commented file and the code defaults are in the public repository \citep{armada2026repository}. For the experiments of \cref{chap:applications}, a runner wrote one configuration per run and copied generated schedules into \texttt{Saved/Schedules/}, which the game reads when no project file of that name exists, and \cref{tab:experiment-settings} lists every setting that the runs changed.
+
+The built-in exports of the framework write summary files at the end of a run, and the evaluation uses only the evacuation summary. Its other numbers come from a run recorder (\texttt{URunRecorderSubsystem}) written for the evaluation on a test branch, which logs events rather than summaries when the command line contains \texttt{-RunRecord=<Label>} and writes the files of \cref{tab:recorder-files}, with simulated time in minutes since midnight of day 0. A trip's \texttt{arrive} event means that the GoTo completed, which also happens when any stop of movement is in play, so \texttt{remaining\_cm} shows whether the target was really reached. With \texttt{-RecordPositions=<s>}, it also logs every person's position, velocity and capsule radius for the blend evaluation.
+
+The stress test (\texttt{UStressTestSubsystem}, enabled by \texttt{-StressAgents=N}) clones the existing people until $N$ are present, waits for a warm-up, measures frame, game-thread, render-thread and \gls{gpu} times and peak memory, writes a summary file and quits. With \texttt{-StressHideMeshes}, it hides the characters and stops their animation and hair, so that the run measures the framework without them, and \texttt{-NoBlend} turns the blend off for its evaluation. The recorder and the stress test live on a test branch of the public repository \citep{armada2026repository}, with the command lines of \cref{app:tooling}.
+
+\subsection{Extending the Framework}
+\label{sec:extending}
+
+A new scenario that uses the existing actions needs a map with one \texttt{AFlockController}, one \texttt{AScheduleManager}, people or spawners, stations grouped into tagged areas, a navigation mesh with painted sidewalks, destination actors tagged as the schedule names them and a schedule file, while a new type of station needs no code at all. Code is needed only when the vocabulary cannot express something. A new action needs a value in the action enumeration, a parser case, an execution branch and, if it must be followed until it ends, a \texttt{UAgentAction} subclass, which is how \texttt{Interact} was added together with its button and gate. A new use case also needs a manager actor that owns the run, and these are the scenario-specific pieces of \cref{chap:conclusions}. The main branch has one automated test, which checks that Accurate mode scales walking distance and authored durations consistently with the clock.
+
+\begin{table}[H]
+\centering
+{\compacttable
+\begin{tabularx}{\textwidth}{|l|R{7.0cm}|Q|}
+\hline
+\rowcolor{headgray}\textbf{File} & \textbf{Columns} & \textbf{Meaning} \\
+\hline
+\texttt{rules.csv} & \texttt{agent, authored\_min, eligible\_min, dispatch\_min, day, minutes\_late, deferrals, action, outcome} & one row per consumed rule, outcome \texttt{dispatched}, \texttt{stale\_skip} or \texttt{prob\_skip} \\ \hline
+\texttt{stations.csv} & \texttt{real\_s, sim\_min, station, agent, event, queue\_len, occupants} & \texttt{admit}, \texttt{queue}, \texttt{arrive}, \texttt{start}, \texttt{complete}, \texttt{leave}, \texttt{leave\_queue}, \texttt{admit\_from\_queue} \\ \hline
+\texttt{trips.csv} & \texttt{real\_s, sim\_min, agent, target, event, detail, remaining\_cm} & GoTo \texttt{start}, \texttt{arrive}, \texttt{fail} with reason and distance left \\ \hline
+\texttt{timeline.csv} & \texttt{real\_s, sim\_min, frames, frame\_ms\_mean, frame\_ms\_max, game\_thread\_ms, gpu\_ms, agents, moving, idle, queued, at\_station, fleeing, safe, casualty} & once per second: frame timing and people by state \\ \hline
+\end{tabularx}}
+\caption[Run recorder files]{Files written by the run recorder.}
+\label{tab:recorder-files}
+\end{table}
+
+\begin{table}[H]
+\centering
+{\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|R{5.6cm}|Q|}
+\hline
+\rowcolor{headgray}\textbf{Setting} & \textbf{Experiment value and reason} \\
+\hline
+\texttt{enableLeadership}, \texttt{enableCopsAndRobbers} & false in every test, so only schedules, stations, movement and environment act \\ \hline
+\texttt{enableInfrastructure\allowbreak Analysis} & on in every test and on every map: idle people stop instead of flocking, a queued person waits without time-out, and a failed path stops the person with their reservation \\ \hline
+\texttt{simulationMode}, clock start & \texttt{AccurateTime} with \texttt{simulationSpeed} 30 for every behavioral run, from 07:30 (before the first rule, so the mesh is ready) or, in the evacuation, from the default of 08:00, and Visual mode for the scaling runs \\ \hline
+\texttt{randomSeed} & one value per repetition, which with the fixed time step reproduces a Mall A run exactly but not a corridor or Daily Urban Life run (\cref{sub:res-same-seed}) \\ \hline
+\texttt{accurateTime/}\allowbreak\texttt{runDurationSimMinutes} & long enough for late rules to run (230 for the shopping centers, 270 for Daily Urban Life, 200 for the evacuation and 15 for the corridors) \\ \hline
+\texttt{autoSelectFromMap}, \texttt{serviceStationTag}, \texttt{serviceStation}\allowbreak\texttt{Capacity} & capacity tests in Mall A: auto-selection off, the tag set to the station type under test (desks, counters or tables), 1--3 places \\ \hline
+\texttt{infrastructurePlanning/}\allowbreak\texttt{runDurationSimMinutes} & 160 or 200, to cover the whole mall schedule \\ \hline
+\texttt{dailyUrbanLife/}\allowbreak\texttt{scheduleFile} & generated \texttt{DailyUrbanLifeSchedule\_x<N>.xml} files for scaling runs \\ \hline
+\texttt{infrastructurePlanning/}\allowbreak\texttt{scheduleFile} & the lunch-rush schedule (\cref{sub:app-mall-rush}), and a generated \texttt{MallA\_x50} schedule for the runs with copied people (\texttt{Agent\_k} uses the rules of \texttt{Agent\_(k mod 10)}) \\ \hline
+clock start, validation corridors & 00:00, because their schedules start at midnight \\ \hline
+command line & \texttt{-UseFixedTimeStep -FPS=30} (one simulated second per frame) in every unrendered run, \texttt{-FPS=120} (0.25 seconds) for the step check, and \texttt{-NoBlend} for half of the blend runs (\cref{tab:flags}) \\ \hline
+\end{tabularx}}
+\caption[Settings changed for the experiments]{Settings changed for the experiments.}
+\label{tab:experiment-settings}
+\end{table}
+
+\endgroup
+
+%======================================================================
+\section{Summary}\label{sec:contrib-summary}
+
+The first approach showed that purpose cannot come from categories of places and a single flock. This led to rules that name the person and a start time, to stations with capacities, queues and service times, and to path-guided movement that the boids only bend. The current simulator keeps the schedules, actions, stations, environment, clock and scenario managers apart, so that a schedule only states who does what and from when, while deferral, reservation, queueing, service and release decide when each activity starts.

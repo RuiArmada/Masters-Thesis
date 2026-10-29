@@ -1,0 +1,196 @@
+\chapter{A Rule-Authoring Framework for Pedestrian Activity}\label{chap:contribution}
+\begingroup\sloppy
+
+\section{Introduction}\label{sec:contrib-intro}
+
+The framework separates four concerns that a crowd demonstration usually mixes in one controller, following the overview of \cref{sub:problem-overview}. These are \emph{what} the person should do and \emph{when} (the schedules), \emph{how} they get there (path-guided hybrid boids), \emph{whether} the activity can take place at that moment (capacity-limited stations) and \emph{what the place actually allows} (the environment). \Cref{tab:requirements-map} shows how the mechanisms of the framework map onto the functional requirements of \cref{chap:problem}.
+
+\begin{table}[H]
+\centering
+\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|L{4.3cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{headgray}\textbf{Requirement} & \textbf{Where it is addressed} \\
+\hline
+R1 Purpose as authored data & XML schedules with timed, per-person and cohort rules (\cref{sec:schedules}), six actions (\cref{sec:actions}). \\ \hline
+R2 Timing under contention & Eligibility, deferral, consumption at dispatch, stale skip (\cref{sec:schedules}), minute-by-minute clock (\cref{sec:clock-modes}). \\ \hline
+R3 Shared capacity-limited resources & Stations, areas, super stations and pipelines with reservation, FIFO queue and timed service (\cref{sec:stations}). \\ \hline
+R4 Reuse across scenarios & One class for every person, one parser and one station model, scenario managers that prepare each map (\cref{sec:arch-modules,sec:scenario-managers}). \\ \hline
+R5 Environment constraints & Sidewalk filter, gates and buttons, exits, safe zones (\cref{sec:environment}), \texttt{Interact} (\cref{sec:actions}). \\ \hline
+R6 Observability and measurement & Summary exports and a validation panel, and for the evaluation a run recorder on the test branch (\cref{sec:instrumentation}). \\ \hline
+R7 Interactive performance & Visual and Accurate modes (\cref{sec:clock-modes}) and bounded boids blending, measured by a stress test on the test branch. \\ \hline
+\end{tabularx}
+\caption[Requirements and where they are addressed]{Requirements and where the framework addresses them.}
+\label{tab:requirements-map}
+\end{table}
+
+\Cref{sec:first-impl} describes the first approach, built before the dissertation, and the two changes that came out of it. \Cref{sec:second-impl} then describes the current pedestrian movement simulator, from its schedules, actions, movement, stations and environment to its clock and run modes, configuration and instrumentation, and \cref{sec:contrib-summary} sums up the chapter.
+
+\section{First Approach}\label{sec:first-impl}
+
+The work started from a prototype built during the pre-dissertation phase, in which a flock of boids moved through a city map and external rules tried to give it purpose. Its rules were organized around categories of places rather than around people. An XML file gave each object of the level a role, such as home, workplace, food place or walkable surface, with fixed active periods such as a morning shift, and during an active period every boid went to a random place of the matching category. Purpose therefore belonged to the period and the type of place rather than to a particular person, and nothing represented a resource that people could share or wait for. Since the boids flocked as one group and steered straight to their destination, a boid that left its group was either held back by its neighbors or dragged them along.
+
+The current system changes both aspects, as rules now name the person, or the group of people, they belong to, give the time of day from which an activity may start and address places through tags and stations with capacities, queues and service times (\cref{sec:schedules,sec:stations}). Movement became individual, as each person follows their own navigation path and the boids rules only bend their heading by a bounded angle, so that the flock spreads people around one another without deciding where they go (\cref{sec:boid-rules}).
+
+\section{Pedestrian Movement Simulator Architecture}\label{sec:second-impl}
+
+The current system replaced the prototype step by step, starting with a schedule manager that gives named people timed tasks. Navigation paths, areas and stations, the scenarios, the hybrid blend, super groups and super stations followed, and finally the simulated clock, the run modes and the action objects, while the division of responsibilities of \cref{fig:architecture} stayed the same throughout.
+
+\subsection{Architecture and Module Layout}\label{sec:arch-modules}
+
+All code lives in one runtime module, \texttt{Thesis}, which uses the engine's \texttt{XmlParser}, \texttt{AIModule} and \texttt{NavigationSystem} modules. \Cref{fig:class-layout} groups the classes by layer, with Unreal's prefixes for actors (\texttt{A}), objects and subsystems (\texttt{U}), structures (\texttt{F}) and interfaces (\texttt{I}).
+
+\texttt{USimulationFeatureRegistry} loads \texttt{SimulationConfig.xml} on every Play, holds the feature flags and settings and answers every other class that asks whether a feature is on. \texttt{AScheduleManager}, one per level, owns the clock, loads the schedule, keeps a registry of people by identifier and evaluates the due rules once per simulated minute. \texttt{ABoidsAB} is the only class that represents a person. As an \texttt{ACharacter}, it leaves walking, gravity and collision with the world to the engine's character movement component. It has a 300\,cm perception sphere for its boids neighbors and an \texttt{AgentId}, usually \texttt{Agent\_N}, that links it to the schedule, and it carries optional components for needs, the priority selector, failure handling, leadership, the police-and-robbers role and greetings, so that one Blueprint of a person serves every scenario. Stations, areas and environment actors are placed in the level and found by tag, spawners create the people and an identifier manager names them in spawn order. Scenario managers prepare a run rather than drive it: at its start, they pick the schedule file, assign homes or entrances and place the people there, set station capacities and start the analytics sessions. Later, the emergency manager raises the alarm and runs the countdown, while each person chooses their own exit and walks there.
+
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[font=\footnotesize,>=Latex,
+  every node/.append style={execute at begin node={\hyphenpenalty=10000\relax}},
+  cls/.style={draw,rounded corners=1.5pt,align=flush left,inner sep=3pt,fill=black!3},
+  lab/.style={fill=white,inner sep=1.5pt,align=center},
+  arr/.style={->,thick},
+  qry/.style={->,thick,dashed}]
+% Three columns (centres 2.24, 7.99 and 13.74 cm); arrows run in the gaps between the boxes.
+\node[cls,text width=4.25cm,fill=black!6] (mgr) at (2.24,0) {\textbf{Scenario managers} (actors)\\ADailyUrbanLifeManager\\AInfrastructurePlanningManager\\AEmergencyManager\\ALeadershipDemoManager\\ACopsAndRobbersDemoManager};
+\node[cls,text width=4.25cm,fill=black!6] (reg) at (13.74,0) {\textbf{USimulationFeatureRegistry}\\(world subsystem)\\feature flags, settings, map gates, scenario};
+\node[cls,text width=4.25cm,fill=cPurple!15,draw=cPurple!80!black] (clk) at (2.24,-3.1) {\textbf{USimulationClock}\\time of day, speed,\\schedule cursor};
+\node[cls,text width=4.2cm,fill=cPurple!15,draw=cPurple!80!black] (sm) at (7.99,-3.1) {\textbf{AScheduleManager} (actor, ticks)\\parses schedule XML, registers people, evaluates due rules, dispatches actions};
+\node[cls,text width=4.25cm,fill=cBlue!15,draw=cBlue!80!black] (act) at (13.74,-3.1) {\textbf{UAgentAction}\\$\triangleright$ UGoToAction\\$\triangleright$ UInteractAction\\\textbf{IInteractable} targets};
+\node[cls,text width=4.2cm,fill=cOrange!18,draw=cOrange!80!black] (person) at (7.99,-7.2) {\textbf{ABoidsAB} (ACharacter)\\path following, hybrid blend, station use and pipelines, evacuation states, triggers\\[2pt]components: Needs, PrioritySelector, FallbackHandler, Leadership, CrimeRole, PedestrianInteraction};
+\node[cls,text width=4.25cm,fill=cOrange!8,draw=cOrange!80!black] (flock) at (2.24,-7.2) {\textbf{AFlockController}\\boids weights,\\sonar directions};
+\node[cls,text width=4.25cm,fill=black!6] (spawn) at (13.74,-7.2) {\textbf{ADirectionalSpawner}\\\textbf{AAgentIdManager}\\spawn, \texttt{Agent\_N} ids};
+\node[cls,text width=7.1cm,fill=cVerm!15,draw=cVerm!80!black] (st) at (3.67,-11.1) {\textbf{AAgentArea} $\triangleright$ \textbf{AAgentSuperStation}\\holds an ordered list of \textbf{AAgentStation}: places, FIFO queue, service timer, pose and animation};
+\node[cls,text width=7.36cm,fill=cGreen!15,draw=cGreen!80!black] (env) at (12.19,-11.1) {\textbf{Environment}: UNavFilter\_SidewalkOnly, UNavArea\_Sidewalk, AExitPoint, AEvacuationSafeZone, AIncidentManager, AMallEntranceGate, AInteractionButton, ASidewalkSegment};
+\node[cls,text width=15.75cm,align=center,fill=cSky!15,draw=cSky!80!black] (svc) at (8.0,-13.05) {\textbf{World subsystems}: USimulationAnalytics, UCrowdRoutingService, UCongestionAnalyzer, UValidationDebugPanelSubsystem};
+\draw[qry] (reg.west |- 0,0.35) -- node[lab,above=1pt]{queried by all} (mgr.east |- 0,0.35);
+\draw[qry] (reg.west |- 0,-0.45) -| ($(sm.north)+(0.9,0)$);
+\draw[arr] (mgr.east |- 0,-0.45) -| node[lab,pos=0.75,left=2pt]{schedule file,\\bootstrap} ($(sm.north)+(-0.9,0)$);
+\draw[arr] (sm.west) -- node[lab,above=2pt]{owns} (clk.east);
+\draw[arr] (sm.east) -- node[lab,above=2pt]{creates} (act.west);
+\draw[arr] ($(sm.south)+(-0.6,0)$) -- node[lab,left=2pt]{RegisterBoid,\\dispatch} ($(person.north)+(-0.6,0)$);
+\draw[arr] (act.south) |- node[lab,pos=0.75,above=1pt]{ticked by person} ($(person.north)+(1.0,0.55)$) -- ($(person.north)+(1.0,0)$);
+\draw[arr] (flock.east) -- node[lab,above=2pt]{reads} (flock.east -| person.west);
+\draw[arr] (spawn.west) -- (spawn.west -| person.east);
+\draw[arr] (person.south -| 6.2,0) -- node[lab,left=2pt]{RequestEnter,\\LeaveStation} (st.north -| 6.2,0);
+\draw[arr] (st.north -| 7.0,0) -- node[lab,right=2pt]{admit,\\completion} (person.south -| 7.0,0);
+\draw[arr] (person.south -| 9.4,0) -- node[lab,right=2pt]{paths, exits,\\incidents} (env.north -| 9.4,0);
+\end{tikzpicture}
+\end{adjustbox}
+\caption[Classes grouped by layer]{Classes of the second implementation grouped by layer, where solid arrows are calls or ownership and dashed arrows are queries of the configuration registry.}
+\label{fig:class-layout}
+\end{figure}
+
+In each frame, the schedule manager advances the clock and processes every simulated minute between its cursor and the clock. Each person then updates their current action, their station pose and their needs, lets the priority selector choose the controlling layer and moves along their path. The rest is event-driven, as engine timers in real seconds end station services and timed idles, process exit queues and run the evacuation countdown. People retry registration every 0.2\,s until the manager accepts them, so actor order does not matter.
+
+\subsection{Schedules and the Rule Language}\label{sec:schedules}
+
+A schedule is an XML file in \texttt{Thesis/Schedules/} that tells named people what to do and from when. The schedule manager of each level names its file, and the Daily Urban Life and infrastructure managers can replace it with a file named in the configuration. A schedule has a root \texttt{<schedule>} with \texttt{<agent id="Agent\_N">} and \texttt{<superGroup>} blocks, a person has \texttt{<rule time="HH:MM">} elements, and each rule may have an \texttt{<if condition="..."/>}, a \texttt{<then action="A" .../>} and an \texttt{<else>} alternative. A \texttt{UseStation} action may have \texttt{<stage>} children, and a super group has a \texttt{<members>} list and its own rules, and \cref{tab:grammar} lists every element with its attributes. Element names are case-insensitive, but attribute names must be spelled exactly, and a missing or malformed file is logged and leaves the people without rules.
+
+\begin{table}[H]
+\centering
+\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|L{2.3cm}|L{4.4cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{headgray}\textbf{Element} & \textbf{Attributes (default)} & \textbf{Meaning} \\
+\hline
+\texttt{schedule} & none & Root of the file, holding \texttt{agent} and \texttt{superGroup} blocks. \\ \hline
+\texttt{agent} & \texttt{id} (required) & The rules of one person, whose \texttt{id} must equal the runtime identifier \texttt{Agent\_N}. \\ \hline
+\texttt{superGroup} & \texttt{id} & A cohort whose \texttt{members} list names people with \texttt{<agent ref="Agent\_N"/>}, each of whom receives a copy of the group's rules. \\ \hline
+\texttt{rule} & \texttt{time} (00:00), \texttt{prob} (1.0) & The time of day from which the rule may run, where malformed text gives 00:00 and out-of-range values are clamped, and a probability rolled at every attempt, where a failed roll uses up the rule. \\ \hline
+\texttt{if} & \texttt{condition} (none) & \texttt{emergency == true|false} or \texttt{location == Home|Work|Food}, which selects \texttt{then} or \texttt{else}. \\ \hline
+\texttt{then}, \texttt{else} & \texttt{action}, \texttt{area} or \texttt{superStation} or \texttt{target}, \texttt{stationType}, \texttt{duration} ($-1$), \texttt{id} & One of the six actions of \cref{tab:actions}, its target tag (the first of the three that is given), a station identifier or tag inside the area, a duration in simulated minutes ($\le 0$ gives an indefinite idle or the station's default of 5) and, for \texttt{Trigger}, the trigger name. \\ \hline
+\texttt{stage} & \texttt{area} or \texttt{superStation}, \texttt{stationType}, \texttt{duration} & One step of a \texttt{UseStation} pipeline, with the same meaning as above. \\ \hline
+\end{tabularx}
+\caption[Elements of the schedule language]{Elements of the schedule language with their attributes and defaults.}
+\label{tab:grammar}
+\end{table}
+
+\Cref{lst:dul-agent0} is the full schedule of one office worker in the Daily Urban Life scenario. The worker uses a bed in the \texttt{Sleep} area, walks to the office area \texttt{Work0}, sits at desk \texttt{A0} for 15 simulated minutes, takes a break, works a second block, walks home and goes back to bed. The gaps between the rules allow for walking, and the evaluation measures whether they are long enough, since a rule that comes due while the person is still walking is deferred. The file holds 50 people with 304 rules, and people 25 to 49 repeat the pattern of people 0 to 24 fifteen minutes later on the same desks, so a late first user makes the second user queue. The file creates this contention without any scripting, because it only states who wants which desk and from when.
+
+\begin{lstlisting}[language=XML,basicstyle=\ttfamily\scriptsize,caption={Schedule of \texttt{Agent\_0} in \texttt{DailyUrbanLifeSchedule.xml}, complete.},label={lst:dul-agent0}]
+<agent id="Agent_0">
+ <rule time="08:05"><then action="UseStation" area="Sleep" stationType="Bed1" duration="20"/></rule>
+ <rule time="08:22"><then action="MoveTo" area="Work0"/></rule>
+ <rule time="08:40"><then action="UseStation" area="Work0" stationType="A0" duration="15"/></rule>
+ <rule time="09:00"><then action="Trigger" id="Break"/></rule>
+ <rule time="09:13"><then action="UseStation" area="Work0" stationType="A0" duration="15"/></rule>
+ <rule time="09:43"><then action="MoveTo" area="Home1"/></rule>
+ <rule time="09:55"><then action="UseStation" area="Sleep" stationType="Bed1" duration="20"/></rule>
+</agent>
+\end{lstlisting}
+
+\Cref{lst:malla-pipeline} is one shopper in Mall A, whose lunch rule in the super station \texttt{FoodCourt} has two stages, 10 minutes at a counter and then 14 minutes at a table. The table is sought only when the counter service has finished, so a queue at the counter delays the search for a table. The two \texttt{<stage>} elements are children of the rule's single \texttt{<then>}, which the closing \texttt{</then>} ends, and the rule needs no \texttt{<else>} because a rule without an \texttt{<if>} always runs its \texttt{<then>}. A \texttt{<superGroup>} is written in the same way, with a \texttt{<members>} list before the rules, and each corridor map has one or two of them, one per cohort.
+
+\begin{lstlisting}[language=XML,basicstyle=\ttfamily\scriptsize,caption={Schedule of \texttt{Agent\_0} in \texttt{InfrastructurePlanning\-Schedule\_\allowbreak MallA.xml}, complete.},label={lst:malla-pipeline}]
+<agent id="Agent_0">
+ <rule time="08:02"><then action="Idle" duration="8"/></rule>
+ <rule time="08:12"><then action="MoveTo" area="ShopA"/></rule>
+ <rule time="08:22"><then action="UseStation" area="ShopA" stationType="ShopA_Desk" duration="10"/></rule>
+ <rule time="08:36"><then action="MoveTo" area="FoodCourt"/></rule>
+ <rule time="08:46">
+  <then action="UseStation">
+   <stage superStation="FoodCourt" stationType="FoodCounter" duration="10"/>
+   <stage superStation="FoodCourt" stationType="FoodTable" duration="14"/>
+  </then>
+ </rule>
+ <rule time="09:16"><then action="MoveTo" area="Exit1"/></rule>
+</agent>
+\end{lstlisting}
+
+A rule is \emph{due} at the processed minute $M$ of day $D$ if it has not been consumed on day $D$ and its effective minute is not later than $M$:
+\begin{equation}
+\boxed{\mathrm{due}(r, M, D) \iff \mathrm{LastExecutedDay}(r) \neq D \;\wedge\; (t_r + o_a) \bmod 1440 \le M}
+\label{eq:due}
+\end{equation}
+where $t_r$ is the authored time in minutes since midnight and $o_a$ is the person's schedule offset. For each person, the manager visits the due rules in time order and makes one attempt per rule, which either \emph{dispatches} it (its action starts), \emph{defers} it (it is tried again at the next minute) or \emph{consumes} it without dispatch. Before any other check, a rule of a person who is present and not busy is consumed as stale when more than 45 minutes have passed since its effective minute, while the rules of a person who has not spawned yet are kept until that person appears. A busy person is never stale-skipped, so an hour in a queue does not cost them every rule that came due meanwhile, and the window, set by hand, stops a long morning delay from releasing morning activities into the afternoon. The probability is then rolled at every attempt, so a rule deferred $k$ times is dispatched with probability $p^{k+1}$ rather than $p$, although no shipped schedule sets \texttt{prob}, and a false condition runs the \texttt{<else>} action if there is one and otherwise consumes the rule.
+
+\Cref{tab:deferral} lists the checks that defer a rule, in the order they are applied. The exemptions matter as much as the checks, because \texttt{StartEvacuation} must not wait for anyone, a \texttt{Break} must interrupt a desk, and in Daily Urban Life a commute home must interrupt whatever the person is doing.
+
+\begin{table}[H]
+\centering
+\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|l|L{6.0cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{headgray} & \textbf{Reason} & \textbf{Exemptions} \\
+\hline
+a & Person not registered with the schedule manager & none \\ \hline
+b & Person in an evacuation state (the condition is evaluated after this check) & none \\ \hline
+c & An incident or a global evacuation is active in the world & \texttt{StartEvacuation} \\ \hline
+d & Person at a station, queued for one, or in a pipeline & \texttt{StartEvacuation}, \texttt{Trigger} \texttt{Break}/\texttt{Pause}, in Daily Urban Life a \texttt{MoveTo} to a \texttt{Home} tag \\ \hline
+e & Person's previous action still running & \texttt{StartEvacuation} \\ \hline
+f & Critical hunger or energy, an active crime response, or following a leader & in Daily Urban Life, \texttt{MoveTo}/\texttt{Interact} to a \texttt{Home} tag \\ \hline
+\end{tabularx}
+\caption[Reasons for deferring a due rule]{Reasons for deferring a due rule, in the order they are checked.}
+\label{tab:deferral}
+\end{table}
+
+Deferral turns walking and queueing time into lateness, since a rule that comes due while the person is still walking waits until the person arrives. It also lets rules run out of the order in which the user wrote them, as when a \texttt{Home} commute, which is exempt from the station check, overtakes a desk rule that is waiting for its desk. A rule is consumed when its action is dispatched, not when the activity ends, so the scheduler never needs to know how an activity ends. A user expresses ``do B after A has finished'' either as stages of one \texttt{UseStation} rule or through deferral, which holds the next rule while the person is busy. A \texttt{<superGroup>} gives each member its own copy of its rules, which are evaluated, deferred and consumed one person at a time, so a cohort saves writing but does not model a collective decision. In Daily Urban Life, each person's rules can be shifted by a random offset of up to 8 minutes, so that people sharing a pattern do not all leave in the same minute.
+
+\subsection{Actions}\label{sec:actions}
+
+The action vocabulary is kept small on purpose (\cref{tab:actions}), because a larger vocabulary would make schedules harder to read and pull scenario logic back into the parser. \texttt{UAgentAction} has four states (not started, running, completed and failed), and a person owns at most one action at a time, so a new action cancels its predecessor. The action object does not move the person but calls the person's normal movement functions and watches the person's state, so movement code stays in one place and deferral check (e) only asks whether the action is still running. A \texttt{GoTo} completes when the person reports arrival or has stopped within 180\,cm of the target, and fails when the person is still moving without a path after 0.5 real seconds, or after 180 real seconds unless it is then within 180\,cm. Every target is a single point, so all people bound for \texttt{Exit1} end at the same point, and any stop of movement sets the arrival flags, which is why the run recorder of the evaluation also logs the remaining distance. \texttt{Interact} needs a target that implements \texttt{IInteractable}, and its only implementation is the Mall B entrance button, which opens a linked gate and so changes the navigation mesh for later path queries.
+
+\begin{table}[H]
+\centering
+\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|L{3.4cm}|L{1.3cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{headgray}\textbf{Action} & \textbf{Object} & \textbf{What happens} \\
+\hline
+\texttt{MoveTo} / \texttt{GoTo} & yes & Walk to the first actor carrying the tag. Completes on arrival within 180\,cm and fails on path failure or after 180 real seconds (90 simulated minutes in Accurate mode). \\ \hline
+\texttt{Interact} & yes & Walk to the target's interaction point, then call \texttt{Interact} on it if it still accepts. \\ \hline
+\texttt{Idle} & no & Stop and stay idle for \texttt{duration} simulated minutes (indefinitely if $\le 0$). \\ \hline
+\texttt{UseStation} & no & Start a station pipeline of one or more stages (\cref{sec:stations}). \\ \hline
+\texttt{Trigger} & no & Raise one of the named triggers \texttt{Break}, \texttt{Pause}, \texttt{Flee}, \texttt{Greet}. \\ \hline
+\texttt{StartEvacuation} & no & Start the global evacuation through the emergency manager. \\ \hline
+\end{tabularx}
+\caption[The six schedule actions]{The six schedule actions, where ``Object'' marks the actions that create a \texttt{UAgentAction}.}
+\label{tab:actions}
+\end{table}
+
+\texttt{Idle} stops the person and starts a timer, and the mall schedules open with idles of 2 to 10 minutes so that shoppers do not all enter at once. \texttt{Break} and \texttt{Pause} release the person from their station, and in Daily Urban Life a \texttt{Break} sends the person to the plaza. \texttt{UseStation} builds the stage list and starts the station pipeline, and the rule is consumed even if no stage can be built. \texttt{StartEvacuation} calls the emergency manager, which starts a fire incident of global radius, alarms every person and starts the countdown. The call is global and idempotent, so the evacuation schedule is a single rule for \texttt{Agent\_0}, after which check (c) holds every other rule of every person.
+
+\endgroup
+
+\input{chapters/contribution_part2}

@@ -1,0 +1,108 @@
+% Number appendix floats per appendix (Table B.1, Figure B.1), like the listings.
+\counterwithin{table}{chapter}
+\counterwithin{figure}{chapter}
+% Pack the appendix floats more tightly.
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+
+\chapter{Details of results}\label{app:results}
+
+The tables below give the per-run detail behind the summaries of \cref{chap:applications}. They are written by the analysis scripts of \cref{app:tooling-scaling} from the same recorded files, and times are in simulated minutes unless stated otherwise.
+
+\FloatBarrier
+\section{Shopping center}
+\label{sec:res-mall}
+
+\Cref{tab:res-capacity-seeds} lists every capacity run of the first five seeds and \cref{tab:app-capacity} gives the statistics of the 30 runs per setting behind \cref{fig:app-capacity}. In the counter and table tests, the shop desks kept the capacity set in the map editor, which allowed two people at one desk.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{headgray}\textbf{Stations changed} & \textbf{Places} & \textbf{s1} & \textbf{s2} & \textbf{s3} & \textbf{s4} & \textbf{s5} & \textbf{Mean} \\
+\hline
+\tabinput{analysis/tables/app_capacity_seeds.tex}
+\end{tabular}
+\caption[Wait per visit for every capacity run]{Wait per station visit in Mall A for every capacity run (simulated minutes).}
+\label{tab:res-capacity-seeds}
+\end{table}
+
+\label{sub:res-same-seed}The desk test with one place and Mall A as authored use identical settings and seed labels, and with the fixed time step their five pairs of runs were identical, with every rule, station and trip event at the same simulated time, while in the earlier runs, whose frame times varied, the same pairs had differed. The fixed step does not make every scenario repeatable, though, as a repeated corridor run started its people from other positions, and a repeated Daily Urban Life run with seed 1 dispatched 296 rules and saw 96 walks arrive, against 295 and 90 in the run of \cref{tab:app-dul}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\rowcolor{headgray}\textbf{Stations changed} & \textbf{Places} & \textbf{Mean} & \textbf{Median} & \textbf{SD} & \textbf{95\% interval} & \textbf{$p$} \\
+\hline
+\tabinput{analysis/tables/capacity30_rows.tex}
+\end{tabular}
+\caption[Wait per visit by number of places, 30 runs]{Wait per station visit in Mall A by number of places with 30 runs per setting, in simulated minutes, where SD is the standard deviation, the interval is the 95\% confidence interval of the mean and $p$ compares each setting with one place, and where three runs with an unreleased reservation make the mean with three counter places invalid (1.25 minutes in the other 27 runs).}
+\label{tab:app-capacity}
+\end{table}
+
+\section{Start delay}
+\label{sec:res-late}
+
+\Cref{tab:app-start-delay} gives the values behind \cref{fig:app-start-delay}, with the mean of each part of the start delay and the share of it spent queueing.
+
+\begin{table}[H]
+\centering
+\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{headgray}\textbf{Scenario} & \textbf{Runs} & \textbf{\shortstack{Started, of\\station rules}} & \textbf{Lateness} & \textbf{Queueing} & \textbf{Walking} & \textbf{\shortstack{Position-\\ing}} & \textbf{\shortstack{Total\\start delay}} & \textbf{\shortstack{Start delay\\spent\\queueing (\%)}} \\
+\hline
+\tabinput{analysis/tables/start_delay_rows.tex}
+\end{tabular}
+\caption[Start delay of station rules]{Mean start delay $s-e=\ell+q+w+p$ of station rules and its four parts in simulated minutes, where the last column gives the share of queueing in the total.}
+\label{tab:app-start-delay}
+\end{table}
+
+\section{Evacuation}
+\label{sec:res-evac}
+
+\Cref{tab:res-evac-runs} gives each evacuation run behind \cref{fig:app-evac}, for every population and at both frame steps.
+
+\begin{table}[H]
+\centering
+\footnotesize\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{headgray}\textbf{\shortstack{Seconds\\per frame}} & \textbf{People} & \textbf{Run} & \textbf{\shortstack{Passed\\an exit}} & \textbf{\shortstack{Through\\exit 1}} & \textbf{\shortstack{Through\\exit 2}} & \textbf{\shortstack{Peak queue,\\exits 1/2}} & \textbf{\shortstack{In the\\safe zone}} & \textbf{\shortstack{Not in the\\safe zone}} & \textbf{\shortstack{Exit\\switches}} \\
+\hline
+\tabinput{analysis/tables/app_evac_runs.tex}
+\end{tabular}
+\caption[Evacuation per run]{Evacuation results per run, where the people not in the safe zone include those that passed an exit but could not enter it.}
+\label{tab:res-evac-runs}
+\end{table}
+
+\section{Scaling}
+\label{sec:res-scaling}
+
+\Cref{tab:res-scaling-runs} lists every scaling run behind \cref{fig:app-scaling}. In all of them the game-thread time was 100\% of the frame time after rounding, so the table leaves it out, and the evacuation with 1600 people crashed in the first frame with a render-graph assertion.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{|r|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{headgray}\textbf{People} & \textbf{Run} & \textbf{\shortstack{Frames\\per\\second}} & \textbf{\shortstack{Mean\\frame\\time}} & \textbf{\shortstack{95th pct.\\frame\\time}} & \textbf{\shortstack{Mean\\GPU\\time}} & \textbf{\shortstack{95th pct.\\GPU\\time}} & \textbf{\shortstack{Peak\\memory\\(GB)}} \\
+\hline
+\tabinput{analysis/tables/app_scaling_runs.tex}
+\end{tabular}
+\caption[Scaling runs]{All scaling runs with times in milliseconds, where 95th pct.\ is the 95th percentile and the runs marked \dag\ are not comparable with the others.}
+\label{tab:res-scaling-runs}
+\end{table}
+\FloatBarrier

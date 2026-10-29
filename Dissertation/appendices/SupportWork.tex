@@ -1,0 +1,29 @@
+% Number appendix floats per appendix (Table B.1, Figure B.1), like the listings.
+\counterwithin{table}{chapter}
+\counterwithin{figure}{chapter}
+% Pack the appendix floats more tightly.
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+
+\chapter{Support work}\label{app:support}
+\begingroup\sloppy
+
+The work below supported the dissertation but is not part of the framework.
+
+\section{Companion conference paper}\label{app:support-paper}
+
+The paper \emph{A Rule Authoring Framework for Pedestrian Activity Simulation with Hybrid Boids and Shared Resources}, by Rui Filipe Pimenta Armada and Ant\'onio Jos\'e Borba Ramires Fernandes, is the short form of the argument developed here: authored rules are the control layer of an experiment run over one reusable boids population, a hybrid boids layer guided by navigation paths moves the agents, and capacity-limited stations decide when an activity can happen. It also reports a preliminary evaluation. This dissertation refines several descriptions of the paper after a review against the source code, for example that a scheduled time is the earliest time a rule becomes eligible, not a guaranteed start, and that a station reserves capacity before the agent arrives.
+
+\section{Analysis pipeline}\label{app:support-analysis}
+
+\texttt{analysis/analyze.py} groups recorded runs by label prefix, rebuilds station visits and trips from the event logs, attributes every late minute, and writes \texttt{data/*.dat} for plots and \texttt{tables/*.tex} for table rows, which the document reads, so re-running the script updates every table and plot.
+
+\par\endgroup
