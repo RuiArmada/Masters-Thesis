@@ -71,7 +71,7 @@ Unreal Engine **5.4**, C++ (`Thesis` module), `XmlParser`, `NavigationSystem`, `
 ## Layout of the repo
 
 ```
-Thesis/
+Project/
 ├── Config/                 SimulationConfig.xml, engine ini
 ├── Content/UseCases/       Evacuation, DailyUrbanLife, MallA/B, Validation
 ├── Documentation/          This guide set
